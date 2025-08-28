@@ -3,8 +3,11 @@ package steam
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -17,7 +20,7 @@ type SteamEnvironment struct {
 	id      string
 }
 
-var currentSteamEnviroment SteamEnvironment // strings get init as ""
+var currentSteamEnvironment SteamEnvironment // strings get init as ""
 
 func init() {
 	err := godotenv.Load()
@@ -25,9 +28,9 @@ func init() {
 		log.Fatal("Error loading .env file")
 	}
 
-	currentSteamEnviroment.host = "https://api.steampowered.com"
-	currentSteamEnviroment.api_key = os.Getenv("STEAM_API_KEY")
-	currentSteamEnviroment.id = os.Getenv("STEAM_ID")
+	currentSteamEnvironment.host = "https://api.steampowered.com"
+	currentSteamEnvironment.api_key = os.Getenv("STEAM_API_KEY")
+	currentSteamEnvironment.id = os.Getenv("STEAM_ID")
 }
 
 var steamInterfaces = struct {
@@ -68,6 +71,7 @@ func getData(t string) (any, error) {
 }
 
 // this handler will parse our query param to call appropriate fns or return error.
+// notice the capital H, this can be imported anywhere else.
 func Handler(w http.ResponseWriter, r *http.Request) {
 	t := r.URL.Query().Get("type")
 
@@ -78,24 +82,70 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(data)
 }
 
-// might change to something else from any...
-func getProfile() (any, error) {
-	// TODO: call Steam API
-	return map[string]string{"stub": "profile"}, nil
+// Sends a request to the steam api by building the URL based on inputs.
+func sendRequestToSteam(steamInterface string, params map[string]string, target any) error {
+	p := url.Values{}
+
+	p.Add("key", currentSteamEnvironment.api_key)
+	p.Add("format", "json")
+
+	// we dont really need strict checking here because the params usage is a constant map only in certain places.
+	for k, v := range params {
+		fmt.Printf("adding %v-%v to qs\n", k, v)
+		p.Add(k, v)
+	}
+
+	fullURL := currentSteamEnvironment.host + steamInterface + "?" + p.Encode()
+	log.Printf("Fetching from Steam API: %s with full URL %v\n", steamInterface, fullURL)
+
+	res, err := http.Get(fullURL)
+	if err != nil {
+		return fmt.Errorf("failed to send request to steam: %w", err)
+	}
+	// defer to guarantee the body is closed
+	defer res.Body.Close()
+
+	if res.StatusCode > 299 {
+		return fmt.Errorf("steam API responded with status code: %d", res.StatusCode)
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	// CHANGE: Unmarshal the JSON into the target struct provided by the caller
+	return json.Unmarshal(body, target)
 }
 
-func getRecentGames() (any, error) {
-	return map[string]string{"stub": "recent games"}, nil
+func getProfile() (*ProfileResponse, error) {
+	var profileData ProfileResponse
+	params := map[string]string{"steamIds": currentSteamEnvironment.id} // construct params
+
+	// since this function unmarshals the data received into a json, we pass a reference to the `target` struct..
+	err := sendRequestToSteam(steamInterfaces.USER, params, &profileData)
+	return &profileData, err
 }
 
-func getOwnedGames() (any, error) {
-	return map[string]string{"stub": "owned games"}, nil
+func getRecentGames() (*RecentGamesResponse, error) {
+	var recentData RecentGamesResponse
+	params := map[string]string{"steamId": currentSteamEnvironment.id}
+	err := sendRequestToSteam(steamInterfaces.RECENT_GAMES, params, &recentData)
+	return &recentData, err
+}
+
+func getOwnedGames() (*OwnedGamesResponse, error) {
+	var ownedData OwnedGamesResponse
+	params := map[string]string{"steamId": currentSteamEnvironment.id, "include_appinfo": "true", "include_played_free_games": "true"}
+	err := sendRequestToSteam(steamInterfaces.OWNED_GAMES, params, &ownedData)
+	return &ownedData, err
 }
 
 func getAll() (any, error) {
-	// Could call all 3 above and merge results
+	// TODO: combine all 3 to get a single response. perhaps use goroutines to do it parallelly?
 	return map[string]string{"stub": "all"}, nil
 }
