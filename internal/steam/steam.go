@@ -22,6 +22,10 @@ type SteamEnvironment struct {
 
 var currentSteamEnvironment SteamEnvironment // strings get init as ""
 
+func (p *SteamEnvironment) printLengths() {
+	fmt.Printf("[STEAM-INIT] id len :: %v api_key len :: %v\n", len(p.id), len(p.api_key))
+}
+
 func init() {
 	err := godotenv.Load()
 	if err != nil {
@@ -31,6 +35,8 @@ func init() {
 	currentSteamEnvironment.host = "https://api.steampowered.com"
 	currentSteamEnvironment.api_key = os.Getenv("STEAM_API_KEY")
 	currentSteamEnvironment.id = os.Getenv("STEAM_ID")
+
+	currentSteamEnvironment.printLengths()
 }
 
 var steamInterfaces = struct {

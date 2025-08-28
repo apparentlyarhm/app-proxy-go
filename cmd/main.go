@@ -50,7 +50,6 @@ func main() {
 
 func pingHandler(w http.ResponseWriter, r *http.Request) {
 
-	log.Printf("Received /ping request from %s", r.RemoteAddr)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(pingResponse)
