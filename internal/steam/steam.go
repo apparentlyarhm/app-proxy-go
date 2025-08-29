@@ -124,17 +124,42 @@ func sendRequestToSteam(steamInterface string, params map[string]string, target 
 		return fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	// CHANGE: Unmarshal the JSON into the target struct provided by the caller
+	// Unmarshal the JSON into the target struct provided by the caller
 	return json.Unmarshal(body, target)
 }
 
-func getProfile() (*ProfileResponse, error) {
-	var profileData ProfileResponse
+func getProfile() (*ProfileAPIResponse, error) {
+	var steamResponse ProfileResponse
 	params := map[string]string{"steamIds": currentSteamEnvironment.id} // construct params
 
 	// since this function unmarshals the data received into a json, we pass a reference to the `target` struct..
-	err := sendRequestToSteam(steamInterfaces.USER, params, &profileData)
-	return &profileData, err
+	err := sendRequestToSteam(steamInterfaces.USER, params, &steamResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	player := steamResponse.Response.Players[0]
+	status := StatusObject{
+		State:  player.PersonaState,
+		InGame: player.GameExtraInfo != "",
+	}
+
+	if status.InGame {
+		status.Game = &player.GameExtraInfo
+		status.GameID = &player.GameID
+	}
+
+	apiResponse := &ProfileAPIResponse{
+		PersonaName:  player.PersonaName,
+		LastLogoff:   player.LastLogoff,
+		Avatar:       player.Avatar,
+		AvatarMedium: player.AvatarMedium,
+		AvatarFull:   player.AvatarFull,
+		ProfileURL:   player.ProfileURL,
+		TimeCreated:  player.TimeCreated,
+		Status:       status,
+	}
+	return apiResponse, nil
 }
 
 func getRecentGames() (*RecentGamesResponse, error) {
