@@ -40,3 +40,20 @@ func (s *Server) handleGetSteamData() http.HandlerFunc {
 		json.NewEncoder(w).Encode(data)
 	}
 }
+
+func (s *Server) handleGetGithubDAta() http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		data, err := s.githubClient.GetGithubData()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(data)
+
+	}
+}

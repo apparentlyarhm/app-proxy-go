@@ -7,6 +7,7 @@ import (
 
 	"github.com/apparentlyarhm/app-proxy-go/api"
 	"github.com/apparentlyarhm/app-proxy-go/config"
+	"github.com/apparentlyarhm/app-proxy-go/internal/github"
 	"github.com/apparentlyarhm/app-proxy-go/internal/steam"
 	"github.com/joho/godotenv"
 )
@@ -38,8 +39,9 @@ func main() {
 	`)
 
 	sc := steam.NewClient(cfg.Steam)
+	gc := github.NewClient(cfg.Github)
 
-	server := api.NewServer(sc)
+	server := api.NewServer(sc, gc)
 	log.Println("Server running on :8080")
 	log.Fatal(http.ListenAndServe(":8080", server))
 }
