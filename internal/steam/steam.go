@@ -8,37 +8,20 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"sync"
 	"time"
 
-	"github.com/joho/godotenv"
+	"github.com/apparentlyarhm/app-proxy-go/config"
 )
 
-// before we write the actual functions, some config is required..
-type SteamEnvironment struct {
-	host    string
-	api_key string
-	id      string
+type Client struct {
+	config config.SteamConfig
 }
 
-var currentSteamEnvironment SteamEnvironment // strings get init as ""
-
-func (p *SteamEnvironment) printLengths() {
-	fmt.Printf("[STEAM-INIT] id len :: %v api_key len :: %v\n", len(p.id), len(p.api_key))
-}
-
-func init() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
+func NewClient(cfg config.SteamConfig) *Client {
+	return &Client{
+		config: cfg,
 	}
-
-	currentSteamEnvironment.host = "https://api.steampowered.com"
-	currentSteamEnvironment.api_key = os.Getenv("STEAM_API_KEY")
-	currentSteamEnvironment.id = os.Getenv("STEAM_ID")
-
-	currentSteamEnvironment.printLengths()
 }
 
 var steamInterfaces = struct {
@@ -59,46 +42,30 @@ const (
 )
 
 // central dispatcher
-func getData(t string) (any, error) {
+func (c *Client) GetData(t string) (any, error) {
 	switch t {
 	case TypeProfile:
-		return getProfile()
+		return c.getProfile()
 
 	case TypeActivity:
-		return getRecentGames()
+		return c.getRecentGames()
 
 	case TypeOwned:
-		return getOwnedGames()
+		return c.getOwnedGames()
 
 	case TypeAll:
-		return getAll()
+		return c.getAll()
 
 	default:
 		return nil, errors.New("invalid 'type' param")
 	}
 }
 
-// this handler will parse our query param to call appropriate fns or return error.
-// notice the capital H, this can be imported anywhere else.
-func Handler(w http.ResponseWriter, r *http.Request) {
-	t := r.URL.Query().Get("type")
-
-	data, err := getData(t)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(data)
-}
-
 // Sends a request to the steam api by building the URL based on inputs.
-func sendRequestToSteam(steamInterface string, params map[string]string, target any) error {
+func (c *Client) sendRequestToSteam(steamInterface string, params map[string]string, target any) error {
 	p := url.Values{}
 
-	p.Add("key", currentSteamEnvironment.api_key)
+	p.Add("key", c.config.APIKey)
 	p.Add("format", "json")
 
 	// we dont really need strict checking here because the params usage is a constant map only in certain places.
@@ -107,9 +74,8 @@ func sendRequestToSteam(steamInterface string, params map[string]string, target 
 		p.Add(k, v)
 	}
 
-	fullURL := currentSteamEnvironment.host + steamInterface + "?" + p.Encode()
-	// TODO: remove fullURL from here when everythings wrapped up.
-	log.Printf("Fetching from Steam API: %s with full URL %v\n", steamInterface, fullURL)
+	fullURL := "https://" + c.config.Host + "/" + steamInterface + "?" + p.Encode()
+	log.Printf("Fetching from Steam API: %s\n", steamInterface)
 
 	res, err := http.Get(fullURL)
 	if err != nil {
@@ -131,12 +97,12 @@ func sendRequestToSteam(steamInterface string, params map[string]string, target 
 	return json.Unmarshal(body, target)
 }
 
-func getProfile() (*ProfileAPIResponse, error) {
+func (c *Client) getProfile() (*ProfileAPIResponse, error) {
 	var steamResponse ProfileResponse
-	params := map[string]string{"steamIds": currentSteamEnvironment.id} // construct params
+	params := map[string]string{"steamIds": c.config.ID} // construct params
 
 	// since this function unmarshals the data received into a json, we pass a reference to the `target` struct..
-	err := sendRequestToSteam(steamInterfaces.USER, params, &steamResponse)
+	err := c.sendRequestToSteam(steamInterfaces.USER, params, &steamResponse)
 	if err != nil {
 		return nil, err
 	}
@@ -165,11 +131,11 @@ func getProfile() (*ProfileAPIResponse, error) {
 	return apiResponse, nil
 }
 
-func getRecentGames() (*RecentGamesApiResponse, error) {
+func (c *Client) getRecentGames() (*RecentGamesApiResponse, error) {
 	var recentSteamData RecentGamesResponse
-	params := map[string]string{"steamId": currentSteamEnvironment.id}
+	params := map[string]string{"steamId": c.config.ID}
 
-	err := sendRequestToSteam(steamInterfaces.RECENT_GAMES, params, &recentSteamData)
+	err := c.sendRequestToSteam(steamInterfaces.RECENT_GAMES, params, &recentSteamData)
 	if err != nil {
 		return nil, err
 	}
@@ -191,10 +157,10 @@ func getRecentGames() (*RecentGamesApiResponse, error) {
 	return apiResponse, err
 }
 
-func getOwnedGames() (*OwnedGamesApiResponse, error) {
+func (c *Client) getOwnedGames() (*OwnedGamesApiResponse, error) {
 	var ownedSteamData OwnedGamesResponse
-	params := map[string]string{"steamId": currentSteamEnvironment.id, "include_appinfo": "true", "include_played_free_games": "true"}
-	err := sendRequestToSteam(steamInterfaces.OWNED_GAMES, params, &ownedSteamData)
+	params := map[string]string{"steamId": c.config.ID, "include_appinfo": "true", "include_played_free_games": "true"}
+	err := c.sendRequestToSteam(steamInterfaces.OWNED_GAMES, params, &ownedSteamData)
 	if err != nil {
 		return nil, err
 	}
@@ -214,7 +180,7 @@ func getOwnedGames() (*OwnedGamesApiResponse, error) {
 	return apiResponse, err
 
 }
-func getAll() (*AllData, error) {
+func (c *Client) getAll() (*AllData, error) {
 
 	var wg sync.WaitGroup
 	var errChan = make(chan error, 3) // Buffered channel to hold potential errors
@@ -228,7 +194,7 @@ func getAll() (*AllData, error) {
 		defer wg.Done()
 		t0 := time.Now()
 
-		profile, err := getProfile()
+		profile, err := c.getProfile()
 		if err != nil {
 			errChan <- fmt.Errorf("failed to get profile: %w", err)
 			return
@@ -243,7 +209,7 @@ func getAll() (*AllData, error) {
 		defer wg.Done()
 		t0 := time.Now()
 
-		recentGames, err := getRecentGames()
+		recentGames, err := c.getRecentGames()
 		if err != nil {
 			errChan <- fmt.Errorf("failed to get recent games: %w", err)
 			return
@@ -258,7 +224,7 @@ func getAll() (*AllData, error) {
 		defer wg.Done()
 		t0 := time.Now()
 
-		ownedGames, err := getOwnedGames()
+		ownedGames, err := c.getOwnedGames()
 		if err != nil {
 			errChan <- fmt.Errorf("failed to get owned games: %w", err)
 			return
