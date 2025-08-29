@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"sync"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -101,11 +103,12 @@ func sendRequestToSteam(steamInterface string, params map[string]string, target 
 
 	// we dont really need strict checking here because the params usage is a constant map only in certain places.
 	for k, v := range params {
-		fmt.Printf("adding %v-%v to qs\n", k, v)
+		fmt.Printf("adding %v to qs\n", k)
 		p.Add(k, v)
 	}
 
 	fullURL := currentSteamEnvironment.host + steamInterface + "?" + p.Encode()
+	// TODO: remove fullURL from here when everythings wrapped up.
 	log.Printf("Fetching from Steam API: %s with full URL %v\n", steamInterface, fullURL)
 
 	res, err := http.Get(fullURL)
@@ -162,21 +165,118 @@ func getProfile() (*ProfileAPIResponse, error) {
 	return apiResponse, nil
 }
 
-func getRecentGames() (*RecentGamesResponse, error) {
-	var recentData RecentGamesResponse
+func getRecentGames() (*RecentGamesApiResponse, error) {
+	var recentSteamData RecentGamesResponse
 	params := map[string]string{"steamId": currentSteamEnvironment.id}
-	err := sendRequestToSteam(steamInterfaces.RECENT_GAMES, params, &recentData)
-	return &recentData, err
+
+	err := sendRequestToSteam(steamInterfaces.RECENT_GAMES, params, &recentSteamData)
+	if err != nil {
+		return nil, err
+	}
+
+	if recentSteamData.Response.TotalCount == 0 {
+		return &RecentGamesApiResponse{
+			TotalCount: 0,
+			Games:      []Game{},
+			Message:    "No games found",
+		}, nil
+	}
+
+	apiResponse := &RecentGamesApiResponse{
+		TotalCount: recentSteamData.Response.TotalCount,
+		Games:      recentSteamData.Response.Games,
+		Message:    "ok",
+	}
+
+	return apiResponse, err
 }
 
-func getOwnedGames() (*OwnedGamesResponse, error) {
-	var ownedData OwnedGamesResponse
+func getOwnedGames() (*OwnedGamesApiResponse, error) {
+	var ownedSteamData OwnedGamesResponse
 	params := map[string]string{"steamId": currentSteamEnvironment.id, "include_appinfo": "true", "include_played_free_games": "true"}
-	err := sendRequestToSteam(steamInterfaces.OWNED_GAMES, params, &ownedData)
-	return &ownedData, err
-}
+	err := sendRequestToSteam(steamInterfaces.OWNED_GAMES, params, &ownedSteamData)
+	if err != nil {
+		return nil, err
+	}
 
-func getAll() (any, error) {
-	// TODO: combine all 3 to get a single response. perhaps use goroutines to do it parallelly?
-	return map[string]string{"stub": "all"}, nil
+	if ownedSteamData.Response.GameCount == 0 {
+		return &OwnedGamesApiResponse{
+			GameCount: 0,
+			Games:     []Game{},
+		}, nil
+	}
+
+	apiResponse := &OwnedGamesApiResponse{
+		GameCount: ownedSteamData.Response.GameCount,
+		Games:     ownedSteamData.Response.Games,
+	}
+
+	return apiResponse, err
+
+}
+func getAll() (*AllData, error) {
+
+	var wg sync.WaitGroup
+	var errChan = make(chan error, 3) // Buffered channel to hold potential errors
+
+	var allData AllData
+
+	wg.Add(3) // We have 3 concurrent tasks to wait for
+
+	// Goroutine for Profile
+	go func() {
+		defer wg.Done()
+		t0 := time.Now()
+
+		profile, err := getProfile()
+		if err != nil {
+			errChan <- fmt.Errorf("failed to get profile: %w", err)
+			return
+		}
+
+		allData.Profile = profile
+		fmt.Printf("time taken for profile :: %v\n", time.Since(t0))
+	}()
+
+	// Goroutine for Recent Games
+	go func() {
+		defer wg.Done()
+		t0 := time.Now()
+
+		recentGames, err := getRecentGames()
+		if err != nil {
+			errChan <- fmt.Errorf("failed to get recent games: %w", err)
+			return
+		}
+		allData.RecentGames = recentGames
+
+		fmt.Printf("time taken for recent games :: %v\n", time.Since(t0))
+	}()
+
+	// Goroutine for Owned Games
+	go func() {
+		defer wg.Done()
+		t0 := time.Now()
+
+		ownedGames, err := getOwnedGames()
+		if err != nil {
+			errChan <- fmt.Errorf("failed to get owned games: %w", err)
+			return
+		}
+		allData.OwnedGames = ownedGames
+
+		fmt.Printf("time taken for owned games :: %v\n", time.Since(t0))
+	}()
+
+	wg.Wait()      // Wait for all 3 goroutines to finish
+	close(errChan) // Close the channel
+
+	// Check if any errors occurred
+	for err := range errChan {
+		if err != nil {
+			return nil, err // Return the first error we find
+		}
+	}
+
+	return &allData, nil
 }
