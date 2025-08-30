@@ -9,8 +9,8 @@ import (
 )
 
 var pingResponse = struct {
-	Message     string
-	AgentString string
+	Message     string `json:"message"`
+	AgentString string `json:"agentString"`
 }{
 	Message:     "works!",
 	AgentString: "go",

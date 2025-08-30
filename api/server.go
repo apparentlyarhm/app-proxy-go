@@ -27,7 +27,7 @@ func NewServer(steamClient *steam.Client, githubClient *github.Client, spotifyCl
 	return server
 }
 
-// ServeHTTP makes our Server itself an http.Handler
+// ServeHTTP makes our `Server` itself an http.Handler
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.router.ServeHTTP(w, r)
 }

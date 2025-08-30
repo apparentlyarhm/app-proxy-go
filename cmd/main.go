@@ -11,6 +11,7 @@ import (
 	"github.com/apparentlyarhm/app-proxy-go/internal/spotify"
 	"github.com/apparentlyarhm/app-proxy-go/internal/steam"
 	"github.com/joho/godotenv"
+	"github.com/rs/cors"
 )
 
 func main() {
@@ -21,6 +22,14 @@ func main() {
 	if err != nil {
 		log.Fatalf("FATAL: could not load config: %v", err)
 	}
+
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Authorization", "Content-Type"},
+		AllowCredentials: true,
+		Debug:            true,
+	})
 
 	fmt.Println(`
 ⢕⢕⢕⢕⢕⢕⢕⢕⢕⢕⢕⢕⢕⢕⢕⢕⢕⢕⢕⢕⢕⢕⠕⠕⠕⠕⢕⢕
@@ -43,7 +52,10 @@ func main() {
 	gc := github.NewClient(cfg.Github)    // github client
 	spc := spotify.NewClient(cfg.Spotify) // spotify client
 
-	server := api.NewServer(sc, gc, spc)
+	server := api.NewServer(sc, gc, spc) // the Server struct implements the "serveHttp" function. so its a valid http handler.
+
+	h := c.Handler(server) // wrap server in our middleware. all requests will execute stuff from there (in our case its just adding couple of headers)
+
 	log.Println("Server running on :8080")
-	log.Fatal(http.ListenAndServe(":8080", server))
+	log.Fatal(http.ListenAndServe(":8080", h)) // see its accpeted
 }
