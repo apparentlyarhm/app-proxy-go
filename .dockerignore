@@ -1,0 +1,16 @@
+# Git
+.git
+.gitignore
+
+# Local development
+.env
+*.env
+
+# Go build artifacts
+*.exe
+*.out
+
+# IDE / OS files
+.vscode/
+.idea/
+*.DS_Store
