@@ -8,6 +8,7 @@ import (
 	"github.com/apparentlyarhm/app-proxy-go/api"
 	"github.com/apparentlyarhm/app-proxy-go/config"
 	"github.com/apparentlyarhm/app-proxy-go/internal/github"
+	"github.com/apparentlyarhm/app-proxy-go/internal/spotify"
 	"github.com/apparentlyarhm/app-proxy-go/internal/steam"
 	"github.com/joho/godotenv"
 )
@@ -38,10 +39,11 @@ func main() {
 ⢕⠕⠀⠼⠟⢉⣉⡙⠻⠿⢿⣿⣿⣿⣿⣿⡿⢿⣛⣭⡴⠶⠶⠂⠀⠿⠿⠇
 	`)
 
-	sc := steam.NewClient(cfg.Steam)
-	gc := github.NewClient(cfg.Github)
+	sc := steam.NewClient(cfg.Steam)      // steam client
+	gc := github.NewClient(cfg.Github)    // github client
+	spc := spotify.NewClient(cfg.Spotify) // spotify client
 
-	server := api.NewServer(sc, gc)
+	server := api.NewServer(sc, gc, spc)
 	log.Println("Server running on :8080")
 	log.Fatal(http.ListenAndServe(":8080", server))
 }
