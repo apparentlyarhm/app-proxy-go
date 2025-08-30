@@ -70,12 +70,12 @@ func (c *Client) sendRequestToSteam(steamInterface string, params map[string]str
 
 	// we dont really need strict checking here because the params usage is a constant map only in certain places.
 	for k, v := range params {
-		fmt.Printf("adding %v to qs\n", k)
+		log.Printf("[Steam Request Sender] adding %v to qs\n", k)
 		p.Add(k, v)
 	}
 
 	fullURL := "https://" + c.config.Host + "/" + steamInterface + "?" + p.Encode()
-	log.Printf("Fetching from Steam API: %s\n", steamInterface)
+	log.Printf("[Steam Request Sender] Fetching from Steam API: %s\n", steamInterface)
 
 	res, err := http.Get(fullURL)
 	if err != nil {
@@ -201,7 +201,7 @@ func (c *Client) getAll() (*AllData, error) {
 		}
 
 		allData.Profile = profile
-		fmt.Printf("time taken for profile :: %v\n", time.Since(t0))
+		log.Printf("[Steam] time taken for profile :: %v\n", time.Since(t0))
 	}()
 
 	// Goroutine for Recent Games
@@ -216,7 +216,7 @@ func (c *Client) getAll() (*AllData, error) {
 		}
 		allData.RecentGames = recentGames
 
-		fmt.Printf("time taken for recent games :: %v\n", time.Since(t0))
+		fmt.Printf("[Steam] time taken for recent games :: %v\n", time.Since(t0))
 	}()
 
 	// Goroutine for Owned Games
@@ -231,7 +231,7 @@ func (c *Client) getAll() (*AllData, error) {
 		}
 		allData.OwnedGames = ownedGames
 
-		fmt.Printf("time taken for owned games :: %v\n", time.Since(t0))
+		fmt.Printf("[Steam] time taken for owned games :: %v\n", time.Since(t0))
 	}()
 
 	wg.Wait()      // Wait for all 3 goroutines to finish

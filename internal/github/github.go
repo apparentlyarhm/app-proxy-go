@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/apparentlyarhm/app-proxy-go/config"
@@ -62,7 +63,7 @@ func (c *Client) GetGithubData() (any, error) {
 	}
 
 	url := "https://" + c.config.Host + "/graphql"
-	fmt.Printf("gh url :: %v\n", url)
+	log.Printf("[Github] gh url :: %v\n", url)
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer([]byte(reqBytes)))
 	if err != nil {
@@ -75,7 +76,7 @@ func (c *Client) GetGithubData() (any, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Error sending request:", err)
+		log.Println("[Github] Error sending request:", err)
 		return nil, err
 	}
 	defer resp.Body.Close()
