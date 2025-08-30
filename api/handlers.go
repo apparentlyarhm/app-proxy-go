@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -13,12 +14,13 @@ var pingResponse = struct {
 	AgentString string `json:"agentString"`
 }{
 	Message:     "works!",
-	AgentString: "go",
+	AgentString: "go-1.25",
 }
 
 func (s *Server) pingHandler() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		log.Printf(":: ping request ::")
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(pingResponse)
