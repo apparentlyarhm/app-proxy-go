@@ -25,7 +25,7 @@ type RecentGamesApiResponse struct {
 }
 
 type OwnedGamesApiResponse struct {
-	GameCount int    `json:"game_count"`
+	GameCount int    `json:"gameCount"` // 31/08/2025: Changed from `game_count` to `gameCount` to match the express app
 	Games     []Game `json:"games"`
 }
 
