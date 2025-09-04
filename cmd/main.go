@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/apparentlyarhm/app-proxy-go/api"
 	"github.com/apparentlyarhm/app-proxy-go/config"
 	"github.com/apparentlyarhm/app-proxy-go/internal/github"
 	"github.com/apparentlyarhm/app-proxy-go/internal/spotify"
 	"github.com/apparentlyarhm/app-proxy-go/internal/steam"
+	"github.com/go-chi/httprate"
 	"github.com/joho/godotenv"
 	"github.com/rs/cors"
 )
@@ -28,8 +30,18 @@ func main() {
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Authorization", "Content-Type"},
 		AllowCredentials: true,
-		Debug:            true,
+		Debug:            false,
 	})
+
+	// we also define rate limiting ops here
+	// notice that the limit function returns a http.Handler. which means we can wrap our main server in it ( which is wrapped in cors as well)
+	rl := httprate.Limit(
+		25,
+		time.Minute,
+		httprate.WithLimitHandler(func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, `{"error": "Too many requests, please try later"}`, http.StatusTooManyRequests)
+		}),
+	)
 
 	fmt.Println(`
 ⢕⢕⢕⢕⢕⢕⢕⢕⢕⢕⢕⢕⢕⢕⢕⢕⢕⢕⢕⢕⢕⢕⠕⠕⠕⠕⢕⢕
@@ -54,8 +66,8 @@ func main() {
 
 	server := api.NewServer(sc, gc, spc) // the Server struct implements the "serveHttp" function. so its a valid http handler.
 
-	h := c.Handler(server) // wrap server in our middleware. all requests will execute stuff from there (in our case its just adding couple of headers)
+	h := c.Handler(rl(server)) // wrap server in our middleware. all requests will execute stuff from there (in our case its just adding couple of headers)
 
 	log.Println("Server running on :8080")
-	log.Fatal(http.ListenAndServe(":8080", h)) // see its accpeted
+	log.Fatal(http.ListenAndServe(":8080", h)) // see, its accpeted
 }

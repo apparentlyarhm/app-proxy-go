@@ -22,6 +22,7 @@ func NewClient(cfg config.GitHubConfig) *Client {
 	}
 }
 
+// Main function that makes the request and returns my github data
 func (c *Client) GetGithubData() (any, error) {
 	q := `
 	query {
