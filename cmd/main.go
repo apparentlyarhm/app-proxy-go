@@ -26,7 +26,7 @@ func main() {
 	}
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"https://arhm.dev", "http://localhost:3000"},
+		AllowedOrigins:   []string{"https://arhm.dev", "http://localhost:3000", "https://nsfw.arhm.dev"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Authorization", "Content-Type"},
 		AllowCredentials: true,
