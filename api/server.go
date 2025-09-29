@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/apparentlyarhm/app-proxy-go/config"
+	"github.com/apparentlyarhm/app-proxy-go/config/middleware"
 	"github.com/apparentlyarhm/app-proxy-go/internal/github"
 	"github.com/apparentlyarhm/app-proxy-go/internal/report"
 	"github.com/apparentlyarhm/app-proxy-go/internal/spotify"
@@ -39,9 +40,29 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) routes() {
+	// TODO: improve
 	s.router.HandleFunc("/steam", s.handleGetSteamData())
 	s.router.HandleFunc("/github/activity", s.handleGetGithubDAta())
 	s.router.HandleFunc("/top", s.handleGetSpotifyTopItems())
 	s.router.HandleFunc("/now", s.handleGetSpotifyNowPlaying())
 	s.router.HandleFunc("/ping", s.pingHandler())
+
+	getReportHandler := http.HandlerFunc(s.handleSystemReportRetrieval())
+
+	createReportHandler := http.HandlerFunc(s.handleSystemReportPublishing())
+	protectedCreateReportHandler := middleware.WithAPIKey(s.conf.GlobalApiKey)(createReportHandler)
+
+	s.router.HandleFunc("/report", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			getReportHandler.ServeHTTP(w, r)
+
+		case http.MethodPost:
+			protectedCreateReportHandler.ServeHTTP(w, r)
+
+		default:
+			w.Header().Set("Allow", "GET, POST")
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		}
+	})
 }

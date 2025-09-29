@@ -7,7 +7,7 @@ import (
 )
 
 type Config struct {
-	GlobalApiKey string `required:"true"` // as of now only the redis related apis need this to put stuff, not for reading..
+	GlobalApiKey string `envconfig:"GLOBAL_API_KEY" required:"true"` // as of now only the redis related apis need this to put stuff, not for reading..
 	Steam        SteamConfig
 	Spotify      SpotifyConfig
 	Github       GitHubConfig

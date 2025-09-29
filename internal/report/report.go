@@ -2,6 +2,9 @@ package report
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"log"
 	"time"
 
 	"github.com/apparentlyarhm/app-proxy-go/config"
@@ -36,4 +39,43 @@ func NewClient(cfg config.RedisConfig) (*Client, error) {
 func (c *Client) Close() error {
 	// adding it now we will see if we need to do it or not
 	return c.actualRedisClient.Close()
+}
+
+func (c *Client) PutSystemReport(req SystemInfo) error {
+	ctx := context.Background()
+
+	jsonData, err := json.Marshal(req)
+	if err != nil {
+		fmt.Println("[REPORT SERV] :: marshaling error:", err)
+		return err
+	}
+
+	payload := string(jsonData)
+
+	e := c.actualRedisClient.Set(ctx, "si", payload, 0).Err() // this key will be constant and will be read.
+	if e != nil {
+		log.Printf("[REPORT SERV] :: err -> %v ", e.Error())
+		return e
+	}
+
+	return nil
+}
+
+func (c *Client) GetSystemReport() {
+	ctx := context.Background()
+
+	rawData, e := c.actualRedisClient.Get(ctx, "si").Result() // any error while finding the key is InternalServerError to the client because the key is hardcoded here.
+	if e != nil {
+		fmt.Printf("ERROR WHILE READING %v", e.Error())
+	}
+
+	var res SystemInfo
+
+	err := json.Unmarshal([]byte(rawData), &res)
+	if err != nil {
+		fmt.Println("[REPORT SERV] :: UNmarshaling error:", err)
+	}
+
+	fmt.Println(res)
+
 }
