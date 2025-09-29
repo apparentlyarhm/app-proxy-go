@@ -61,12 +61,13 @@ func (c *Client) PutSystemReport(req SystemInfo) error {
 	return nil
 }
 
-func (c *Client) GetSystemReport() {
+func (c *Client) GetSystemReport() (any, error) {
 	ctx := context.Background()
 
 	rawData, e := c.actualRedisClient.Get(ctx, "si").Result() // any error while finding the key is InternalServerError to the client because the key is hardcoded here.
 	if e != nil {
 		fmt.Printf("ERROR WHILE READING %v", e.Error())
+		return nil, e
 	}
 
 	var res SystemInfo
@@ -74,8 +75,9 @@ func (c *Client) GetSystemReport() {
 	err := json.Unmarshal([]byte(rawData), &res)
 	if err != nil {
 		fmt.Println("[REPORT SERV] :: UNmarshaling error:", err)
+		return nil, err
 	}
 
-	fmt.Println(res)
+	return res, nil
 
 }

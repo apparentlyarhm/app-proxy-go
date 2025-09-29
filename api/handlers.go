@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/apparentlyarhm/app-proxy-go/internal/report"
 	"github.com/apparentlyarhm/app-proxy-go/internal/spotify"
 )
 
@@ -21,6 +22,7 @@ func (s *Server) pingHandler() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf(":: ping request ::")
+
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(pingResponse)
@@ -60,6 +62,37 @@ func (s *Server) handleGetGithubDAta() http.HandlerFunc {
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(data)
 
+	}
+}
+
+func (s *Server) handleSystemReportPublishing() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var p report.SystemInfo
+
+		jErr := json.NewDecoder(r.Body).Decode(&p) // this will only fail if the payload is bad
+		if jErr != nil {
+			http.Error(w, "Incorrect Payload", http.StatusBadRequest)
+			return
+		}
+
+		e := s.reportClient.PutSystemReport(p)
+		if e != nil {
+			http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		}
+	}
+}
+
+func (s *Server) handleSystemReportRetrieval() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		data, e := s.reportClient.GetSystemReport()
+		if e != nil {
+			// here any error is InternalServerError and is logged inside
+			http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(data)
 	}
 }
 
