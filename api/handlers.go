@@ -8,6 +8,7 @@ import (
 
 	"github.com/apparentlyarhm/app-proxy-go/internal/report"
 	"github.com/apparentlyarhm/app-proxy-go/internal/spotify"
+	"github.com/redis/go-redis/v9"
 )
 
 var pingResponse = struct {
@@ -75,7 +76,7 @@ func (s *Server) handleSystemReportPublishing() http.HandlerFunc {
 			return
 		}
 
-		e := s.reportClient.PutSystemReport(p)
+		e := s.reportClient.PutSystemReport(r.Context(), p)
 		if e != nil {
 			http.Error(w, "Something went wrong", http.StatusInternalServerError)
 		}
@@ -84,10 +85,19 @@ func (s *Server) handleSystemReportPublishing() http.HandlerFunc {
 
 func (s *Server) handleSystemReportRetrieval() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		data, e := s.reportClient.GetSystemReport()
+		data, e := s.reportClient.GetSystemReport(r.Context())
 		if e != nil {
 			// here any error is InternalServerError and is logged inside
-			http.Error(w, "Something went wrong", http.StatusInternalServerError)
+			// however redis.Nil should be returned as 404 so that its easy to handle
+			if e == redis.Nil {
+				w.WriteHeader(http.StatusNotFound)
+				return
+
+			} else {
+				http.Error(w, "Something went wrong", http.StatusInternalServerError)
+				return
+
+			}
 		}
 
 		w.Header().Set("Content-Type", "application/json")

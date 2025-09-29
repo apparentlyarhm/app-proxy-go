@@ -33,6 +33,7 @@ func NewClient(cfg config.RedisConfig) (*Client, error) {
 		return nil, err
 	}
 
+	log.Println("[REPORT SERV] :: redis pinged")
 	return &Client{actualRedisClient: rdb}, nil
 }
 
@@ -41,8 +42,7 @@ func (c *Client) Close() error {
 	return c.actualRedisClient.Close()
 }
 
-func (c *Client) PutSystemReport(req SystemInfo) error {
-	ctx := context.Background()
+func (c *Client) PutSystemReport(ctx context.Context, req SystemInfo) error {
 
 	jsonData, err := json.Marshal(req)
 	if err != nil {
@@ -61,13 +61,13 @@ func (c *Client) PutSystemReport(req SystemInfo) error {
 	return nil
 }
 
-func (c *Client) GetSystemReport() (any, error) {
-	ctx := context.Background()
+func (c *Client) GetSystemReport(ctx context.Context) (any, error) {
 
 	rawData, e := c.actualRedisClient.Get(ctx, "si").Result() // any error while finding the key is InternalServerError to the client because the key is hardcoded here.
 	if e != nil {
 		fmt.Printf("ERROR WHILE READING %v", e.Error())
 		return nil, e
+
 	}
 
 	var res SystemInfo
