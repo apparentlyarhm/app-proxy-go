@@ -7,10 +7,11 @@ import (
 )
 
 type Config struct {
-	Steam   SteamConfig
-	Spotify SpotifyConfig
-	Github  GitHubConfig
-	Redis   RedisConfig
+	GlobalApiKey string `required:"true"` // as of now only the redis related apis need this to put stuff, not for reading..
+	Steam        SteamConfig
+	Spotify      SpotifyConfig
+	Github       GitHubConfig
+	Redis        RedisConfig
 }
 
 type SteamConfig struct {
@@ -57,6 +58,7 @@ func Load() (Config, error) {
 	fmt.Printf("[ENV] len GH_TOKEN: %v\n", len(cfg.Github.GhToken))
 	fmt.Printf("[ENV] len REDIS_ADDR: %v\n", len(cfg.Redis.Addr))
 	fmt.Printf("[ENV] len REDIS_PASSWORD: %v\n", len(cfg.Redis.Password))
+	fmt.Printf("[ENV] len GLOBAL_API_KEY: %v\n", len(cfg.GlobalApiKey))
 
 	return cfg, nil
 }

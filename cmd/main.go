@@ -71,7 +71,7 @@ func main() {
 	gc := github.NewClient(cfg.Github)    // github client
 	spc := spotify.NewClient(cfg.Spotify) // spotify client
 
-	server := api.NewServer(sc, gc, spc, rc) // the Server struct implements the "serveHttp" function. so its a valid http handler.
+	server := api.NewServer(sc, gc, spc, rc, cfg) // the Server struct implements the "serveHttp" function. so its a valid http handler.
 
 	h := c.Handler(rl(server)) // wrap server in our middleware. all requests will execute stuff from there (in our case its just adding couple of headers)
 

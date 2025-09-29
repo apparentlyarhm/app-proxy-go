@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 
+	"github.com/apparentlyarhm/app-proxy-go/config"
 	"github.com/apparentlyarhm/app-proxy-go/internal/github"
 	"github.com/apparentlyarhm/app-proxy-go/internal/report"
 	"github.com/apparentlyarhm/app-proxy-go/internal/spotify"
@@ -14,16 +15,18 @@ type Server struct {
 	githubClient  *github.Client
 	spotifyClient *spotify.Client
 	reportClient  *report.Client
+	conf          config.Config
 	// We can also embed a router here
 	router *http.ServeMux
 }
 
-func NewServer(steamClient *steam.Client, githubClient *github.Client, spotifyClient *spotify.Client, reportClient *report.Client) *Server {
+func NewServer(steamClient *steam.Client, githubClient *github.Client, spotifyClient *spotify.Client, reportClient *report.Client, cfg config.Config) *Server {
 	server := &Server{
 		steamClient:   steamClient,
 		githubClient:  githubClient,
 		spotifyClient: spotifyClient,
 		reportClient:  reportClient,
+		conf:          cfg,
 		router:        http.NewServeMux(),
 	}
 	server.routes()
