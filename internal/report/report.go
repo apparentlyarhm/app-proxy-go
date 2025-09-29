@@ -12,7 +12,7 @@ import (
 // Well this was done to respect the already present structure.
 // TODO: perhaps refactor?
 type Client struct {
-	client *redis.Client
+	actualRedisClient *redis.Client
 }
 
 func NewClient(cfg config.RedisConfig) (*Client, error) {
@@ -30,10 +30,10 @@ func NewClient(cfg config.RedisConfig) (*Client, error) {
 		return nil, err
 	}
 
-	return &Client{client: rdb}, nil
+	return &Client{actualRedisClient: rdb}, nil
 }
 
 func (c *Client) Close() error {
 	// adding it now we will see if we need to do it or not
-	return c.client.Close()
+	return c.actualRedisClient.Close()
 }
