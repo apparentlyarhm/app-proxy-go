@@ -10,6 +10,7 @@ type Config struct {
 	Steam   SteamConfig
 	Spotify SpotifyConfig
 	Github  GitHubConfig
+	Redis   RedisConfig
 }
 
 type SteamConfig struct {
@@ -32,6 +33,12 @@ type GitHubConfig struct {
 	GhToken string `envconfig:"GH_TOKEN"     required:"true"`
 }
 
+type RedisConfig struct {
+	Addr     string `envconfig:"REDIS_ADDR"`
+	Password string `envconfig:"REDIS_PASSWORD"`
+	DB       int    `envconfig:"REDIS_DB"`
+}
+
 func Load() (Config, error) {
 	var cfg Config
 	// The first argument is a prefix, which we'll leave empty.
@@ -48,6 +55,8 @@ func Load() (Config, error) {
 	fmt.Printf("[ENV] len SPOTIFY_REFRESH_TOKEN: %v\n", len(cfg.Spotify.RefreshToken))
 	fmt.Printf("[ENV] len SPOTIFY_PLAYLIST_ID: %v\n", len(cfg.Spotify.PlaylistID))
 	fmt.Printf("[ENV] len GH_TOKEN: %v\n", len(cfg.Github.GhToken))
+	fmt.Printf("[ENV] len REDIS_ADDR: %v\n", len(cfg.Redis.Addr))
+	fmt.Printf("[ENV] len REDIS_PASSWORD: %v\n", len(cfg.Redis.Password))
 
 	return cfg, nil
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/apparentlyarhm/app-proxy-go/api"
 	"github.com/apparentlyarhm/app-proxy-go/config"
 	"github.com/apparentlyarhm/app-proxy-go/internal/github"
+	"github.com/apparentlyarhm/app-proxy-go/internal/report"
 	"github.com/apparentlyarhm/app-proxy-go/internal/spotify"
 	"github.com/apparentlyarhm/app-proxy-go/internal/steam"
 	"github.com/go-chi/httprate"
@@ -60,11 +61,17 @@ func main() {
 ⢕⠕⠀⠼⠟⢉⣉⡙⠻⠿⢿⣿⣿⣿⣿⣿⡿⢿⣛⣭⡴⠶⠶⠂⠀⠿⠿⠇
 	`)
 
+	// we attempt to init redis first, as absence of it should not start the app, even though currently its not really mission critical.
+	rc, e := report.NewClient(cfg.Redis)
+	if e != nil {
+		log.Fatalf("failed to connect to redis: %v", e)
+	}
+
 	sc := steam.NewClient(cfg.Steam)      // steam client
 	gc := github.NewClient(cfg.Github)    // github client
 	spc := spotify.NewClient(cfg.Spotify) // spotify client
 
-	server := api.NewServer(sc, gc, spc) // the Server struct implements the "serveHttp" function. so its a valid http handler.
+	server := api.NewServer(sc, gc, spc, rc) // the Server struct implements the "serveHttp" function. so its a valid http handler.
 
 	h := c.Handler(rl(server)) // wrap server in our middleware. all requests will execute stuff from there (in our case its just adding couple of headers)
 

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/apparentlyarhm/app-proxy-go/internal/github"
+	"github.com/apparentlyarhm/app-proxy-go/internal/report"
 	"github.com/apparentlyarhm/app-proxy-go/internal/spotify"
 	"github.com/apparentlyarhm/app-proxy-go/internal/steam"
 )
@@ -12,15 +13,17 @@ type Server struct {
 	steamClient   *steam.Client // we pass the clients, with its config and hence environment details
 	githubClient  *github.Client
 	spotifyClient *spotify.Client
+	reportClient  *report.Client
 	// We can also embed a router here
 	router *http.ServeMux
 }
 
-func NewServer(steamClient *steam.Client, githubClient *github.Client, spotifyClient *spotify.Client) *Server {
+func NewServer(steamClient *steam.Client, githubClient *github.Client, spotifyClient *spotify.Client, reportClient *report.Client) *Server {
 	server := &Server{
 		steamClient:   steamClient,
 		githubClient:  githubClient,
 		spotifyClient: spotifyClient,
+		reportClient:  reportClient,
 		router:        http.NewServeMux(),
 	}
 	server.routes()
