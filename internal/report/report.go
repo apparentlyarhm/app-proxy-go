@@ -57,6 +57,7 @@ func (c *Client) PutSystemReport(ctx context.Context, req SystemInfo) error {
 		log.Printf("[REPORT SERV] :: err -> %v ", e.Error())
 		return e
 	}
+	log.Println("[REPORT SERV] :: data written to redis!")
 
 	return nil
 }
