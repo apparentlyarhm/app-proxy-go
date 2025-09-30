@@ -31,6 +31,10 @@ jobs:
             "GH_TOKEN"
             "STEAM_ID"
             "STEAM_API_KEY"
+            "REDIS_ADDR"
+            "REDIS_PASSWORD"
+            "REDIS_DB"
+            "GLOBAL_API_KEY"
           )
 
           missing_vars=()
@@ -58,6 +62,11 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           STEAM_ID: ${{ secrets.STEAM_ID }}
           STEAM_API_KEY: ${{ secrets.STEAM_API_KEY }}
+          REDIS_ADDR: ${{ secrets.REDIS_ADDR }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          REDIS_DB: ${{ secrets.REDIS_DB }}
+          GLOBAL_API_KEY: ${{ secrets.GLOBAL_API_KEY }}
+
 
       - name: Set up Google Cloud Auth
         uses: google-github-actions/auth@v1
@@ -89,4 +98,8 @@ jobs:
             GH_TOKEN=${{ secrets.GH_TOKEN }}
             STEAM_ID=${{ secrets.STEAM_ID }}
             STEAM_API_KEY=${{ secrets.STEAM_API_KEY }}
+            REDIS_ADDR=${{ secrets.REDIS_ADDR }}
+            REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+            REDIS_DB=${{ secrets.REDIS_DB }}
+            GLOBAL_API_KEY=${{ secrets.GLOBAL_API_KEY }}
 
