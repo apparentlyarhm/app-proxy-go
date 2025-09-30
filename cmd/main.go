@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/apparentlyarhm/app-proxy-go/api"
@@ -18,7 +19,9 @@ import (
 )
 
 func main() {
-	godotenv.Load() // in local the env file is present, in deployment it will get values from the enviroment.
+	// TODO: streamline error responses with proper body
+
+	godotenv.Load() // in local the env file is present, in deployment it will get values from the enviroment directly
 	fmt.Println(":: attempting to start proxy service ::")
 
 	cfg, err := config.Load()
@@ -36,8 +39,13 @@ func main() {
 
 	// we also define rate limiting ops here
 	// notice that the limit function returns a http.Handler. which means we can wrap our main server in it ( which is wrapped in cors as well)
+	rlVal, e := strconv.Atoi(cfg.GlobalRateLimit)
+	if e != nil {
+		rlVal = 25 // hardcode just in case parsing fails
+	}
+
 	rl := httprate.Limit(
-		25,
+		rlVal,
 		time.Minute,
 		httprate.WithLimitHandler(func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, `{"error": "Too many requests, please try later"}`, http.StatusTooManyRequests)

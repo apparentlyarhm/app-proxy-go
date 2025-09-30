@@ -121,7 +121,6 @@ func (s *Server) handleGetSpotifyTopItems() http.HandlerFunc {
 			timeRange = "short_term" // Default to short_term
 		}
 
-		// Parse limit and offset, with error handling
 		limit, err := strconv.Atoi(queryParams.Get("limit"))
 		if err != nil || limit <= 0 {
 			limit = 10 // Default on error or invalid value
@@ -132,7 +131,6 @@ func (s *Server) handleGetSpotifyTopItems() http.HandlerFunc {
 			offset = 0 // Default on error
 		}
 
-		// Parse boolean parameter
 		full, _ := strconv.ParseBool(queryParams.Get("full"))
 
 		params := spotify.TopItemsParams{

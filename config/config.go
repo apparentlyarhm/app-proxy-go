@@ -7,11 +7,12 @@ import (
 )
 
 type Config struct {
-	GlobalApiKey string `envconfig:"GLOBAL_API_KEY" required:"true"` // as of now only the redis related apis need this to put stuff, not for reading..
-	Steam        SteamConfig
-	Spotify      SpotifyConfig
-	Github       GitHubConfig
-	Redis        RedisConfig
+	GlobalRateLimit string `envconfig:"GLOBAL_RATE_LIMIT" default:"25"`
+	GlobalApiKey    string `envconfig:"GLOBAL_API_KEY" required:"true"` // as of now only the redis related apis need this to put stuff, not for reading..
+	Steam           SteamConfig
+	Spotify         SpotifyConfig
+	Github          GitHubConfig
+	Redis           RedisConfig
 }
 
 type SteamConfig struct {
@@ -59,6 +60,7 @@ func Load() (Config, error) {
 	fmt.Printf("[ENV] len REDIS_ADDR: %v\n", len(cfg.Redis.Addr))
 	fmt.Printf("[ENV] len REDIS_PASSWORD: %v\n", len(cfg.Redis.Password))
 	fmt.Printf("[ENV] len GLOBAL_API_KEY: %v\n", len(cfg.GlobalApiKey))
+	fmt.Printf("[ENV] Setting Global Rate Limit: %v\n", cfg.GlobalRateLimit)
 
 	return cfg, nil
 }
