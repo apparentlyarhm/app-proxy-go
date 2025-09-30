@@ -106,6 +106,27 @@ func (s *Server) handleSystemReportRetrieval() http.HandlerFunc {
 	}
 }
 
+func (s *Server) handleSystemReportDeletion() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		e := s.reportClient.DeleteReport(r.Context())
+		if e != nil {
+			// here any error is InternalServerError and is logged inside
+			// however redis.Nil should be returned as 404 so that its easy to handle
+			if e == redis.Nil {
+				w.WriteHeader(http.StatusNotFound)
+				return
+
+			} else {
+				http.Error(w, "Something went wrong", http.StatusInternalServerError)
+				return
+
+			}
+		}
+
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
 // handleGetSpotifyTopItems parses query parameters for the top items endpoint.
 func (s *Server) handleGetSpotifyTopItems() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

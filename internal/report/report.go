@@ -43,7 +43,6 @@ func (c *Client) Close() error {
 }
 
 func (c *Client) PutSystemReport(ctx context.Context, req SystemInfo) error {
-
 	jsonData, err := json.Marshal(req)
 	if err != nil {
 		fmt.Println("[REPORT SERV] :: marshaling error:", err)
@@ -66,7 +65,7 @@ func (c *Client) GetSystemReport(ctx context.Context) (any, error) {
 
 	rawData, e := c.actualRedisClient.Get(ctx, "si").Result() // any error while finding the key is InternalServerError to the client because the key is hardcoded here.
 	if e != nil {
-		fmt.Printf("ERROR WHILE READING %v", e.Error())
+		log.Printf("ERROR WHILE READING %v", e.Error())
 		return nil, e
 
 	}
@@ -75,10 +74,22 @@ func (c *Client) GetSystemReport(ctx context.Context) (any, error) {
 
 	err := json.Unmarshal([]byte(rawData), &res)
 	if err != nil {
-		fmt.Println("[REPORT SERV] :: UNmarshaling error:", err)
+		log.Println("[REPORT SERV] :: UNmarshaling error:", err)
 		return nil, err
 	}
 
 	return res, nil
 
+}
+
+func (c *Client) DeleteReport(ctx context.Context) error {
+
+	res, e := c.actualRedisClient.Del(ctx, "si").Result()
+	if e != nil {
+		log.Printf("[REPORT SERV] :: error while deleting %v", e.Error())
+		return e
+	}
+
+	log.Printf("[REPORT SERV] :: deleted %v entry(s)", res)
+	return nil
 }

@@ -48,9 +48,11 @@ func (s *Server) routes() {
 	s.router.HandleFunc("/ping", s.pingHandler())
 
 	getReportHandler := http.HandlerFunc(s.handleSystemReportRetrieval())
-
 	createReportHandler := http.HandlerFunc(s.handleSystemReportPublishing())
+	deleteReportHandler := http.HandlerFunc(s.handleSystemReportDeletion())
+
 	protectedCreateReportHandler := middleware.WithAPIKey(s.conf.GlobalApiKey)(createReportHandler)
+	protectedDeletedReportHandler := middleware.WithAPIKey(s.conf.GlobalApiKey)(deleteReportHandler)
 
 	s.router.HandleFunc("/report", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
@@ -59,6 +61,9 @@ func (s *Server) routes() {
 
 		case http.MethodPost:
 			protectedCreateReportHandler.ServeHTTP(w, r)
+
+		case http.MethodDelete:
+			protectedDeletedReportHandler.ServeHTTP(w, r)
 
 		default:
 			w.Header().Set("Allow", "GET, POST")
