@@ -41,17 +41,17 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) routes() {
-	s.router.HandleFunc("/steam", s.handleGetSteamData()).Methods(http.MethodGet)
+	s.router.HandleFunc("/steam/summary", s.handleGetSteamData()).Methods(http.MethodGet)
 	s.router.HandleFunc("/github/activity", s.handleGetGithubDAta()).Methods(http.MethodGet)
-	s.router.HandleFunc("/top", s.handleGetSpotifyTopItems()).Methods(http.MethodGet)
-	s.router.HandleFunc("/now", s.handleGetSpotifyNowPlaying()).Methods(http.MethodGet)
-	s.router.HandleFunc("/ping", s.pingHandler()).Methods(http.MethodGet)
+	s.router.HandleFunc("/spotify/top", s.handleGetSpotifyTopItems()).Methods(http.MethodGet)
+	s.router.HandleFunc("/spotify/now", s.handleGetSpotifyNowPlaying()).Methods(http.MethodGet)
+	s.router.HandleFunc("/misc/ping", s.pingHandler()).Methods(http.MethodGet)
 
-	s.router.HandleFunc("/report", s.handleSystemReportRetrieval()).Methods(http.MethodGet)
+	s.router.HandleFunc("/misc/report", s.handleSystemReportRetrieval()).Methods(http.MethodGet)
 
 	createReportHandler := http.HandlerFunc(s.handleSystemReportPublishing())
-	s.router.Handle("/report", middleware.WithAPIKey(s.conf.GlobalApiKey)(createReportHandler)).Methods(http.MethodPost)
+	s.router.Handle("/misc/report", middleware.WithAPIKey(s.conf.GlobalApiKey)(createReportHandler)).Methods(http.MethodPost)
 
 	deleteReportHandler := http.HandlerFunc(s.handleSystemReportDeletion())
-	s.router.Handle("/report", middleware.WithAPIKey(s.conf.GlobalApiKey)(deleteReportHandler)).Methods(http.MethodDelete)
+	s.router.Handle("/misc/report", middleware.WithAPIKey(s.conf.GlobalApiKey)(deleteReportHandler)).Methods(http.MethodDelete)
 }
