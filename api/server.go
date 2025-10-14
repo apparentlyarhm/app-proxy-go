@@ -9,6 +9,7 @@ import (
 	"github.com/apparentlyarhm/app-proxy-go/internal/report"
 	"github.com/apparentlyarhm/app-proxy-go/internal/spotify"
 	"github.com/apparentlyarhm/app-proxy-go/internal/steam"
+	"github.com/gorilla/mux"
 )
 
 type Server struct {
@@ -18,7 +19,7 @@ type Server struct {
 	reportClient  *report.Client
 	conf          config.Config
 	// We can also embed a router here
-	router *http.ServeMux
+	router *mux.Router
 }
 
 func NewServer(steamClient *steam.Client, githubClient *github.Client, spotifyClient *spotify.Client, reportClient *report.Client, cfg config.Config) *Server {
@@ -28,7 +29,7 @@ func NewServer(steamClient *steam.Client, githubClient *github.Client, spotifyCl
 		spotifyClient: spotifyClient,
 		reportClient:  reportClient,
 		conf:          cfg,
-		router:        http.NewServeMux(),
+		router:        mux.NewRouter(),
 	}
 	server.routes()
 	return server
@@ -40,34 +41,17 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) routes() {
-	// TODO: improve
-	s.router.HandleFunc("/steam", s.handleGetSteamData())
-	s.router.HandleFunc("/github/activity", s.handleGetGithubDAta())
-	s.router.HandleFunc("/top", s.handleGetSpotifyTopItems())
-	s.router.HandleFunc("/now", s.handleGetSpotifyNowPlaying())
-	s.router.HandleFunc("/ping", s.pingHandler())
+	s.router.HandleFunc("/steam", s.handleGetSteamData()).Methods(http.MethodGet)
+	s.router.HandleFunc("/github/activity", s.handleGetGithubDAta()).Methods(http.MethodGet)
+	s.router.HandleFunc("/top", s.handleGetSpotifyTopItems()).Methods(http.MethodGet)
+	s.router.HandleFunc("/now", s.handleGetSpotifyNowPlaying()).Methods(http.MethodGet)
+	s.router.HandleFunc("/ping", s.pingHandler()).Methods(http.MethodGet)
 
-	getReportHandler := http.HandlerFunc(s.handleSystemReportRetrieval())
+	s.router.HandleFunc("/report", s.handleSystemReportRetrieval()).Methods(http.MethodGet)
+
 	createReportHandler := http.HandlerFunc(s.handleSystemReportPublishing())
+	s.router.Handle("/report", middleware.WithAPIKey(s.conf.GlobalApiKey)(createReportHandler)).Methods(http.MethodPost)
+
 	deleteReportHandler := http.HandlerFunc(s.handleSystemReportDeletion())
-
-	protectedCreateReportHandler := middleware.WithAPIKey(s.conf.GlobalApiKey)(createReportHandler)
-	protectedDeletedReportHandler := middleware.WithAPIKey(s.conf.GlobalApiKey)(deleteReportHandler)
-
-	s.router.HandleFunc("/report", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			getReportHandler.ServeHTTP(w, r)
-
-		case http.MethodPost:
-			protectedCreateReportHandler.ServeHTTP(w, r)
-
-		case http.MethodDelete:
-			protectedDeletedReportHandler.ServeHTTP(w, r)
-
-		default:
-			w.Header().Set("Allow", "GET, POST")
-			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		}
-	})
+	s.router.Handle("/report", middleware.WithAPIKey(s.conf.GlobalApiKey)(deleteReportHandler)).Methods(http.MethodDelete)
 }

@@ -1,8 +1,8 @@
 # APP-PROXY-GO
 
-A go-based backend service that connects to `Github`, `Steam` and `Spotify` to return data to my frontend, [arhm.dev](https://arhm.dev) (The application isnt live yet)
+A go-based backend service that connects to `Github`, `Steam` and `Spotify` to return data to my frontend, [nsfw.arhm.dev](https://nsfw.arhm.dev)
 
-### info
+### Preface
 
 so instead of it being a 1-to-1 rewrite, I have tried my best to learn best practices and implement it here.
 
@@ -13,6 +13,19 @@ so instead of it being a 1-to-1 rewrite, I have tried my best to learn best prac
 
 ### THIS IS MOSTLY A RE-WRITE OF MY APP IN EXPRESS, FOR EDUCATIONAL PURPOSES.
 
-## log
+### Log
 
 - [29/8/25]: Finished porting steam API integration
+- [14/10/25]: I forgot to keep this updated
+
+## APIs
+
+### General Structure
+
+GET `/{service}/{data}`
+
+### Current Services:
+- Github
+- Steam
+- Spotify
+- Misc
