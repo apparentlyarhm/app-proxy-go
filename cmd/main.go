@@ -13,6 +13,7 @@ import (
 	"github.com/apparentlyarhm/app-proxy-go/internal/report"
 	"github.com/apparentlyarhm/app-proxy-go/internal/spotify"
 	"github.com/apparentlyarhm/app-proxy-go/internal/steam"
+	"github.com/apparentlyarhm/app-proxy-go/internal/telemetry"
 	"github.com/go-chi/httprate"
 	"github.com/joho/godotenv"
 	"github.com/rs/cors"
@@ -75,9 +76,24 @@ func main() {
 		log.Fatalf("failed to connect to redis: %v", e)
 	}
 
-	sc := steam.NewClient(cfg.Steam)      // steam client
-	gc := github.NewClient(cfg.Github)    // github client
-	spc := spotify.NewClient(cfg.Spotify) // spotify client
+	steamHttp := &http.Client{
+		Timeout:   10 * time.Second,
+		Transport: &telemetry.MetricTransport{DB: nil, Service: "steam", Base: http.DefaultTransport},
+	}
+
+	githubHttp := &http.Client{
+		Timeout:   10 * time.Second,
+		Transport: &telemetry.MetricTransport{DB: nil, Service: "github", Base: http.DefaultTransport},
+	}
+
+	spotifyHttp := &http.Client{
+		Timeout:   10 * time.Second,
+		Transport: &telemetry.MetricTransport{DB: nil, Service: "spotify", Base: http.DefaultTransport},
+	}
+
+	sc := steam.NewClient(cfg.Steam, steamHttp)        // steam client
+	gc := github.NewClient(cfg.Github, githubHttp)     // github client
+	spc := spotify.NewClient(cfg.Spotify, spotifyHttp) // spotify client
 
 	server := api.NewServer(sc, gc, spc, rc, cfg) // the Server struct implements the "serveHttp" function. so its a valid http handler.
 

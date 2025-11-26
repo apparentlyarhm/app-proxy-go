@@ -13,12 +13,18 @@ import (
 
 type Client struct {
 	config config.GitHubConfig
+	http   *http.Client
 }
 
-func NewClient(cfg config.GitHubConfig) *Client {
+func NewClient(cfg config.GitHubConfig, httpClient *http.Client) *Client {
+
+	if httpClient == nil {
+		httpClient = http.DefaultClient
+	}
 
 	return &Client{
 		config: cfg,
+		http:   httpClient,
 	}
 }
 
@@ -74,8 +80,7 @@ func (c *Client) GetGithubData() (any, error) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+c.config.GhToken)
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := c.http.Do(req)
 	if err != nil {
 		log.Println("[Github] Error sending request:", err)
 		return nil, err

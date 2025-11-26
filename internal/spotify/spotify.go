@@ -19,13 +19,15 @@ import (
 type Client struct {
 	config config.SpotifyConfig
 	tm     TokenManager
+	http   *http.Client
 }
 
-func NewClient(cfg config.SpotifyConfig) *Client {
+func NewClient(cfg config.SpotifyConfig, httpClient *http.Client) *Client {
 
 	return &Client{
 		config: cfg,
-		tm:     TokenManager{},
+		tm:     TokenManager{http: httpClient},
+		http:   httpClient,
 	}
 }
 
@@ -61,7 +63,7 @@ func (c *Client) getAccessToken() (string, error) {
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Authorization", "Basic "+authHeader)
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := c.tm.http.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("failed to send token refresh request: %w", err)
 	}
@@ -109,7 +111,7 @@ func (c *Client) GetTopItems(params TopItemsParams) (any, error) {
 
 	req.Header.Add("Authorization", "Bearer "+accessToken)
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := c.http.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get top items from spotify: %w", err)
 	}
@@ -171,7 +173,7 @@ func (c *Client) GetNowPlaying(full bool) (any, error) {
 
 	req.Header.Add("Authorization", "Bearer "+accessToken)
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := c.http.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get now-playing from spotify: %w", err)
 	}

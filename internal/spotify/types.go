@@ -1,6 +1,7 @@
 package spotify
 
 import (
+	"net/http"
 	"sync"
 	"time"
 )
@@ -21,6 +22,7 @@ type TokenManager struct {
 	mu          sync.Mutex // Mutex to protect access to the fields below
 	accessToken string
 	expiresAt   time.Time
+	http        *http.Client // will allow us to track auth latency
 }
 
 // tokenResponse defines the structure of the JSON response from Spotify's token endpoint.

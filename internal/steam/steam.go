@@ -16,11 +16,13 @@ import (
 
 type Client struct {
 	config config.SteamConfig
+	http   *http.Client
 }
 
-func NewClient(cfg config.SteamConfig) *Client {
+func NewClient(cfg config.SteamConfig, httpClient *http.Client) *Client {
 	return &Client{
 		config: cfg,
+		http:   httpClient,
 	}
 }
 
@@ -77,7 +79,7 @@ func (c *Client) sendRequestToSteam(steamInterface string, params map[string]str
 	fullURL := "https://" + c.config.Host + "/" + steamInterface + "?" + p.Encode()
 	log.Printf("[Steam Request Sender] Fetching from Steam API: %s\n", steamInterface)
 
-	res, err := http.Get(fullURL)
+	res, err := c.http.Get(fullURL)
 	if err != nil {
 		return fmt.Errorf("failed to send request to steam: %w", err)
 	}
