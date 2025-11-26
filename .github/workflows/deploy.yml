@@ -35,6 +35,11 @@ jobs:
             "REDIS_PASSWORD"
             "REDIS_DB"
             "GLOBAL_API_KEY"
+            "DB_HOST"
+            "DB_NAME"
+            "DB_USER"
+            "DB_USER"
+            "TAILSCALE_AUTH_KEY"
           )
 
           missing_vars=()
@@ -66,6 +71,11 @@ jobs:
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
           REDIS_DB: ${{ secrets.REDIS_DB }}
           GLOBAL_API_KEY: ${{ secrets.GLOBAL_API_KEY }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASS: ${{ secrets.DB_PASS }}
+          TAILSCALE_AUTH_KEY: ${{ secrets.TAILSCALE_AUTH_KEY }}
 
 
       - name: Set up Google Cloud Auth
@@ -102,4 +112,9 @@ jobs:
             REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
             REDIS_DB=${{ secrets.REDIS_DB }}
             GLOBAL_API_KEY=${{ secrets.GLOBAL_API_KEY }}
+            DB_HOST=${{ secrets.DB_HOST }}
+            DB_NAME=${{ secrets.DB_NAME }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASS=${{ secrets.DB_PASS }}
+            TAILSCALE_AUTH_KEY=${{ secrets.TAILSCALE_AUTH_KEY }}
 
