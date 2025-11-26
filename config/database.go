@@ -68,7 +68,8 @@ func InitDb(cfg *Config) (*sql.DB, error) {
 	}
 
 	// VPN handshakes can take a while
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	log.Printf("[INIT] pinging database with 10s T/O...")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	if err := db.PingContext(ctx); err != nil {
