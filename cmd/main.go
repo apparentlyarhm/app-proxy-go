@@ -76,19 +76,24 @@ func main() {
 		log.Fatalf("failed to connect to redis: %v", e)
 	}
 
+	db, err := config.InitDb(&cfg)
+	if err != nil {
+		log.Fatalf("FATAL: Could not init DB: %v", err)
+	}
+
 	steamHttp := &http.Client{
 		Timeout:   10 * time.Second,
-		Transport: &telemetry.MetricTransport{DB: nil, Service: "steam", Base: http.DefaultTransport},
+		Transport: &telemetry.MetricTransport{DB: db, Service: "steam", Base: http.DefaultTransport},
 	}
 
 	githubHttp := &http.Client{
 		Timeout:   10 * time.Second,
-		Transport: &telemetry.MetricTransport{DB: nil, Service: "github", Base: http.DefaultTransport},
+		Transport: &telemetry.MetricTransport{DB: db, Service: "github", Base: http.DefaultTransport},
 	}
 
 	spotifyHttp := &http.Client{
 		Timeout:   10 * time.Second,
-		Transport: &telemetry.MetricTransport{DB: nil, Service: "spotify", Base: http.DefaultTransport},
+		Transport: &telemetry.MetricTransport{DB: db, Service: "spotify", Base: http.DefaultTransport},
 	}
 
 	sc := steam.NewClient(cfg.Steam, steamHttp)        // steam client

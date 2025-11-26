@@ -9,15 +9,19 @@ import (
 type Config struct {
 	GlobalRateLimit  string `envconfig:"GLOBAL_RATE_LIMIT" default:"25"`
 	GlobalApiKey     string `envconfig:"GLOBAL_API_KEY" required:"true"` // as of now only the redis related apis need this to put stuff, not for reading..
-	DbHost           string `envconfig:"DB_HOST" required:"true"`
-	DbName           string `envconfig:"DB_NAME" required:"true"`
-	DbUser           string `envconfig:"DB_USER" required:"true"`
-	DbPass           string `envconfig:"DB_PASS" required:"true"`
 	TailscaleAuthKey string `envconfig:"TAILSCALE_AUTH_KEY"`
+	Database         DatabaseConfig
 	Steam            SteamConfig
 	Spotify          SpotifyConfig
 	Github           GitHubConfig
 	Redis            RedisConfig
+}
+
+type DatabaseConfig struct {
+	Host string `envconfig:"DB_HOST" required:"true"`
+	Name string `envconfig:"DB_NAME" required:"true"`
+	User string `envconfig:"DB_USER" required:"true"`
+	Pass string `envconfig:"DB_PASS" required:"true"`
 }
 
 type SteamConfig struct {
@@ -55,6 +59,7 @@ func Load() (Config, error) {
 	}
 
 	// just protection against empty string or something, just in case...
+	// using log here doesnt make sense since we are not doing anything
 	fmt.Printf("[ENV] len STEAM_API_KEY: %v\n", len(cfg.Steam.APIKey))
 	fmt.Printf("[ENV] len STEAM_ID: %v\n", len(cfg.Steam.ID))
 	fmt.Printf("[ENV] len SPOTIFY_CLIENT_ID: %v\n", len(cfg.Spotify.ClientID))
@@ -65,9 +70,9 @@ func Load() (Config, error) {
 	fmt.Printf("[ENV] len REDIS_ADDR: %v\n", len(cfg.Redis.Addr))
 	fmt.Printf("[ENV] len REDIS_PASSWORD: %v\n", len(cfg.Redis.Password))
 	fmt.Printf("[ENV] len GLOBAL_API_KEY: %v\n", len(cfg.GlobalApiKey))
-	fmt.Printf("[ENV] len DB_PASSWORD: %v\n", len(cfg.DbPass))
+	fmt.Printf("[ENV] len DB_PASSWORD: %v\n", len(cfg.Database.Pass))
 	fmt.Printf("[ENV] Setting Global Rate Limit: %v\n", cfg.GlobalRateLimit)
-	fmt.Printf("[ENV] DB Host: %v\n", cfg.DbHost)
+	fmt.Printf("[ENV] DB Host: %v\n", cfg.Database.Host)
 
 	return cfg, nil
 }
