@@ -159,8 +159,6 @@ func (c *Client) GetTopItems(params TopItemsParams) (any, error) {
 }
 
 func (c *Client) GetNowPlaying(full bool) (any, error) {
-	log.Println("[Spotify] Fetching now playing...")
-
 	accessToken, err := c.getAccessToken()
 	if err != nil {
 		return nil, err
@@ -220,6 +218,5 @@ func (c *Client) GetNowPlaying(full bool) (any, error) {
 		},
 	}
 
-	log.Println("[Spotify] Now playing fetched successfully")
 	return filteredResponse, nil
 }

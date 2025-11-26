@@ -5,11 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"sync"
-	"time"
 
 	"github.com/apparentlyarhm/app-proxy-go/config"
 )
@@ -72,12 +70,10 @@ func (c *Client) sendRequestToSteam(steamInterface string, params map[string]str
 
 	// we dont really need strict checking here because the params usage is a constant map only in certain places.
 	for k, v := range params {
-		log.Printf("[Steam Request Sender] adding %v to qs\n", k)
 		p.Add(k, v)
 	}
 
 	fullURL := "https://" + c.config.Host + "/" + steamInterface + "?" + p.Encode()
-	log.Printf("[Steam Request Sender] Fetching from Steam API: %s\n", steamInterface)
 
 	res, err := c.http.Get(fullURL)
 	if err != nil {
@@ -194,7 +190,6 @@ func (c *Client) getAll() (*AllData, error) {
 	// Goroutine for Profile
 	go func() {
 		defer wg.Done()
-		t0 := time.Now()
 
 		profile, err := c.getProfile()
 		if err != nil {
@@ -203,13 +198,11 @@ func (c *Client) getAll() (*AllData, error) {
 		}
 
 		allData.Profile = profile
-		log.Printf("[Steam] time taken for profile :: %v\n", time.Since(t0))
 	}()
 
 	// Goroutine for Recent Games
 	go func() {
 		defer wg.Done()
-		t0 := time.Now()
 
 		recentGames, err := c.getRecentGames()
 		if err != nil {
@@ -217,14 +210,11 @@ func (c *Client) getAll() (*AllData, error) {
 			return
 		}
 		allData.RecentGames = recentGames
-
-		fmt.Printf("[Steam] time taken for recent games :: %v\n", time.Since(t0))
 	}()
 
 	// Goroutine for Owned Games
 	go func() {
 		defer wg.Done()
-		t0 := time.Now()
 
 		ownedGames, err := c.getOwnedGames()
 		if err != nil {
@@ -232,8 +222,6 @@ func (c *Client) getAll() (*AllData, error) {
 			return
 		}
 		allData.OwnedGames = ownedGames
-
-		fmt.Printf("[Steam] time taken for owned games :: %v\n", time.Since(t0))
 	}()
 
 	wg.Wait()      // Wait for all 3 goroutines to finish

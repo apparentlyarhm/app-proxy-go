@@ -3,7 +3,6 @@ package report
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"time"
 
@@ -45,7 +44,7 @@ func (c *Client) Close() error {
 func (c *Client) PutSystemReport(ctx context.Context, req SystemInfo) error {
 	jsonData, err := json.Marshal(req)
 	if err != nil {
-		fmt.Println("[REPORT SERV] :: marshaling error:", err)
+		log.Println("[REPORT SERV] :: marshaling error:", err)
 		return err
 	}
 

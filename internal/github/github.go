@@ -70,7 +70,6 @@ func (c *Client) GetGithubData() (any, error) {
 	}
 
 	url := "https://" + c.config.Host + "/graphql"
-	log.Printf("[Github] gh url :: %v\n", url)
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer([]byte(reqBytes)))
 	if err != nil {
