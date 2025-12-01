@@ -109,7 +109,7 @@ func InitDb(cfg *Config) *DBConnection {
 			// hard limit, it ideally should not take this long
 			if backoff < 30*time.Second {
 				backoff += 2 * time.Second
-				log.Printf("[INIT] permananent db failure, aborting")
+				log.Printf("[IS IT AVAILABLE?] permananent db failure, aborting. will continue without DB")
 
 			}
 		}
