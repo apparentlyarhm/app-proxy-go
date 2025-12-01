@@ -112,10 +112,12 @@ func main() {
 	}()
 
 	quit := make(chan os.Signal, 1)
+
+	// we have 10s to cleanup SIGTERM otherwise SIGKILL is initiated
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 
-	<-quit
-	fmt.Println("\nshutdown cleanup")
+	<-quit // we wait for a signal from main GOR
+	fmt.Println("\nshutting down..")
 
 	if db.GetDB() != nil {
 		db.GetDB().Close()
