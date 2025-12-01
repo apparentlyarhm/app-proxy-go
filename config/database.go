@@ -88,27 +88,30 @@ func InitDb(cfg *Config) *DBConnection {
 			return
 		}
 
-		// VPN handshakes can take a while
-		log.Printf("[INIT] pinging database with 10s T/O...")
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
+		// simple backoff strategy to try to establish connection
+		backoff := 2 * time.Second
+		for {
+			log.Println("[INIT] pinging db")
 
-		if err := db.PingContext(ctx); err != nil {
-			return
-		}
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			err := db.PingContext(ctx)
+			cancel()
 
-		conn.SetDB(db)
-		log.Println("[INIT] Database connected successfully")
+			if err == nil {
+				log.Println("[INIT] db connected")
+				conn.SetDB(db)
+				return
+			}
 
-		query := `
-        SELECT EXISTS (
-    		SELECT 1
-    		FROM pg_tables
-    		WHERE schemaname = 'default' AND tablename = 'api_metrics'
-		);
-    `
-		if _, err := db.Exec(query); err != nil {
-			log.Printf("[INIT] could not run basic table check")
+			log.Printf("[INIT] Ping failure: %v. Retrying in %v...", err, backoff)
+			time.Sleep(backoff)
+
+			// hard limit, it ideally should not take this long
+			if backoff < 30*time.Second {
+				backoff += 2 * time.Second
+				log.Printf("[INIT] permananent db failure, aborting")
+
+			}
 		}
 	}()
 
