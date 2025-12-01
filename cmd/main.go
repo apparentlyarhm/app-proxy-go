@@ -76,10 +76,7 @@ func main() {
 		log.Fatalf("failed to connect to redis: %v", e)
 	}
 
-	db, err := config.InitDb(&cfg)
-	if err != nil {
-		log.Fatalf("FATAL: Could not init DB: %v", err)
-	}
+	db := config.InitDb(&cfg)
 
 	steamHttp := &http.Client{
 		Timeout:   10 * time.Second,

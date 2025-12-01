@@ -1,24 +1,27 @@
 package telemetry
 
 import (
-	"database/sql"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/apparentlyarhm/app-proxy-go/config"
 )
 
 type MetricTransport struct {
-	Base    http.RoundTripper // The original transporter (usually http.DefaultTransport)
-	DB      *sql.DB           // tsnet/postgres connection
-	Service string            // "steam", "spotify", "github"
+	Base    http.RoundTripper    // The original transporter (usually http.DefaultTransport)
+	DB      *config.DBConnection // tsnet/postgres connection wrapper
+	Service string               // "steam", "spotify", "github"
 }
 
 func (t *MetricTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	start := time.Now()
 
-	if t.DB == nil {
+	db := t.DB.GetDB() // we either have it or we dont
+
+	if db == nil {
 		resp, err := t.Base.RoundTrip(req)
-		log.Printf("Logging metrics are disabled, however this request to %v took %v", t.Service, time.Since(start))
+		log.Printf("Logging metrics are yet to be up, however this request to %v took %v", t.Service, time.Since(start))
 
 		return resp, err
 	}
@@ -41,7 +44,7 @@ func (t *MetricTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 			INSERT INTO api_metrics (target_url, method, status_code, duration_ms, service_name) 
 			VALUES ($1, $2, $3, $4, $5)
 		`
-		_, dbErr := t.DB.Exec(query, req.URL.String(), req.Method, statusCode, duration.Milliseconds(), t.Service)
+		_, dbErr := db.Exec(query, req.URL.String(), req.Method, statusCode, duration.Milliseconds(), t.Service)
 		if dbErr != nil {
 
 			// don't crash
