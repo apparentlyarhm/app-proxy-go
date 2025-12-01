@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
 	"time"
 
 	"github.com/apparentlyarhm/app-proxy-go/api"
@@ -101,6 +104,21 @@ func main() {
 
 	h := c.Handler(rl(server)) // wrap server in our middleware. all requests will execute stuff from there (in our case its just adding couple of headers)
 
-	log.Println("Server running on :8080")
-	log.Fatal(http.ListenAndServe(":8080", h)) // see, its accpeted
+	go func() {
+		log.Println("Server running on :8080")
+		if err := http.ListenAndServe(":8080", h); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+
+	<-quit
+	fmt.Println("\nshutdown cleanup")
+
+	if db.GetDB() != nil {
+		db.GetDB().Close()
+		fmt.Println("db connection closed.")
+	}
 }
