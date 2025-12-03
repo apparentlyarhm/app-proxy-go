@@ -36,6 +36,11 @@ func (h *DBConnection) GetDB() *sql.DB {
 func InitDb(cfg *Config) *DBConnection {
 	conn := &DBConnection{}
 
+	if cfg.Database.Host == "" {
+		log.Println("[INIT] skipping database..")
+		return conn
+	}
+
 	go func() {
 		log.Println("[INIT] initializing database connection")
 
@@ -109,8 +114,10 @@ func InitDb(cfg *Config) *DBConnection {
 			// hard limit, it ideally should not take this long
 			if backoff < 30*time.Second {
 				backoff += 2 * time.Second
-				log.Printf("[IS IT AVAILABLE?] permananent db failure, aborting. will continue without DB")
 
+			} else {
+				log.Printf("[IS IT AVAILABLE?] permananent db failure, aborting. will continue without DB")
+				break
 			}
 		}
 	}()

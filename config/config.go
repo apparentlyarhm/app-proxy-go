@@ -18,10 +18,10 @@ type Config struct {
 }
 
 type DatabaseConfig struct {
-	Host string `envconfig:"DB_HOST" required:"true"`
-	Name string `envconfig:"DB_NAME" required:"true"`
-	User string `envconfig:"DB_USER" required:"true"`
-	Pass string `envconfig:"DB_PASS" required:"true"`
+	Host string `envconfig:"DB_HOST"`
+	Name string `envconfig:"DB_NAME"`
+	User string `envconfig:"DB_USER"`
+	Pass string `envconfig:"DB_PASS"`
 }
 
 type SteamConfig struct {

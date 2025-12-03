@@ -21,7 +21,7 @@ func (t *MetricTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 
 	if db == nil {
 		resp, err := t.Base.RoundTrip(req)
-		log.Printf("Logging metrics are yet to be up, however this request to %v took %v", t.Service, time.Since(start))
+		log.Printf("[METRICS] metrics are either disabled or still connecting, however this request to %v took %v", t.Service, time.Since(start))
 
 		return resp, err
 	}
@@ -45,10 +45,12 @@ func (t *MetricTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 			VALUES ($1, $2, $3, $4, $5)
 		`
 		_, dbErr := db.Exec(query, req.URL.String(), req.Method, statusCode, duration.Milliseconds(), t.Service)
+		log.Printf("[METRICS] Trying to write to db :: %v @ %vms", t.Service, duration.Milliseconds())
+
 		if dbErr != nil {
 
 			// don't crash
-			log.Printf("DB Log Error: %v\n", dbErr)
+			log.Printf("[METRICS] DB Log Error: %v\n", dbErr)
 		}
 	}()
 
