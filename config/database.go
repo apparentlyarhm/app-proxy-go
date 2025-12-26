@@ -95,6 +95,8 @@ func InitDb(cfg *Config) *DBConnection {
 
 		// simple backoff strategy to try to establish connection
 		backoff := 2 * time.Second
+		maxBackoff := 30 * time.Second
+
 		for {
 			log.Println("[INIT] pinging db")
 
@@ -112,10 +114,8 @@ func InitDb(cfg *Config) *DBConnection {
 			time.Sleep(backoff)
 
 			// hard limit, it ideally should not take this long
-			if backoff < 30*time.Second {
-				backoff += 2 * time.Second
-
-			} else {
+			backoff *= 2
+			if backoff > maxBackoff {
 				log.Printf("[IS IT AVAILABLE?] permananent db failure, aborting. will continue without DB")
 				break
 			}
