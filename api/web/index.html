@@ -1,28 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Spoti-proxy</title>
 
     <!-- Open Graph -->
     <meta property="og:title" content="Spoti-proxy">
-    <meta property="og:description" content="My personal website shows data from various services. This backend fetches that data for me in a single place.">
+    <meta property="og:description"
+        content="My personal website shows data from various services. This backend fetches that data for me in a single place.">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Spoti-proxy">
-    
+
     <!-- Basic meta -->
-    <meta name="description" content="My personal website shows data from various services. This backend fetches that data for me in a single place.">
+    <meta name="description"
+        content="My personal website shows data from various services. This backend fetches that data for me in a single place.">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
         body {
-            margin: 40px;
             background: #fafafa;
             color: #222;
         }
 
         h1 {
             margin-bottom: 0.2em;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .left {
+            margin: 40px;
+            width: 50%;
+            overflow-y: auto;
+        }
+
+        .right {
+            width: 50%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+
+            justify-content: center;
+            align-items: center;
+
+            border-radius: 15px;
+            border: 1px solid #ddd;
+
+            transition: background-color 0.3s ease;
+            background: white;
+            color: gray;
+            font-style: italic;
+            cursor: not-allowed;
+
+            font-size: 12px;
         }
 
         .box {
@@ -43,45 +77,89 @@
         ul {
             line-height: 1.7;
         }
+
+        button {
+            font-size: 12px;
+            padding: 18px 36px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background-color 0.1s ease, border-color 0.1s ease;
+        }
+
+        button:hover {
+            background-color: #f0f0f0;
+            border-color: #999;
+        }
+
+        .status {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .btn-row {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
     </style>
 </head>
 
 <body>
+    <div class="container">
+        <div class="left">
+            <h1>Spoti-proxy</h1>
+            <p>If you see this, the server is running.</p>
 
-<h1>Spoti-proxy</h1>
-<p>If you see this, the server is running.</p>
+            <p>
+                My personal website shows data from various services.
+                This backend fetches that data for me in a single place.
+            </p>
 
-<p>
-This API prvoides data for nsfw.arhm.dev
-It is not intended for direct browser usage.
-</p>
+            <div class="box">
+                <h2>Available Endpoints</h2>
 
-<div class="box">
-<h2>Available Endpoints</h2>
+                <ul>
+                    <li><code>GET /steam/summary</code> — Steam profile summary</li>
+                    <li><code>GET /github/activity</code> — Recent GitHub activity</li>
+                    <li><code>GET /spotify/top</code> — Top Spotify items</li>
+                    <li><code>GET /spotify/now</code> — Currently playing track</li>
+                    <li><code>GET /misc/ping</code> — Health check</li>
+                    <li><code>GET /misc/report</code> — Retrieve system report</li>
+                    <p>Below are ran locally.</p>
+                    <li><code>POST /misc/report</code> — Publish system report (API key required)</li>
+                    <li><code>DELETE /misc/report</code> — Delete system report (API key required)</li>
+                </ul>
 
-<ul>
-<li><code>GET /steam/summary</code> — Steam profile summary</li>
-<li><code>GET /github/activity</code> — Recent GitHub activity</li>
-<li><code>GET /spotify/top</code> — Top Spotify items</li>
-<li><code>GET /spotify/now</code> — Currently playing track</li>
-<li><code>GET /misc/ping</code> — Health check</li>
-<li><code>GET /misc/report</code> — Retrieve system report</li>
-<p>Below are ran locally.</p>
-<li><code>POST /misc/report</code> — Publish system report (API key required)</li>
-<li><code>DELETE /misc/report</code> — Delete system report (API key required)</li>
-</ul>
+            </div>
 
-</div>
+            <div class="box">
+                <div class="btn-row">
+                    <a href="https://github.com/apparentlyarhm/spotify-proxy" target="_blank">
+                        <button>Github Repo</button>
+                    </a>
+                    <a href="https://nsfw.arhm.dev" target="_blank">
+                        <button>Site</button>
+                    </a>
+                    <a href="https://console.cloud.google.com/run" target="_blank">
+                        <button>Cloud Run</button>
+                    </a>
+                </div>
+            </div>
+        </div>
 
-<div class="box">
-<h2>Source</h2>
-<p>
-Project repo:  
-<a href="https://github.com/apaprentlyarhm/spoti-proxy">
-https://github.com/apaprentlyarhm/spoti-proxy
-</a>
-</p>
-</div>
+        <div class="right">
+            <p>I might or might not add a API exectioner here later</p>
+            <ul>
+                <li><b>Global Rate limit:</b> {{ .RL }}</li>
+                <li><b>Service:</b> {{ .Service }}</li>
+                <li><b>Revision:</b> {{ .Revision }}</li>
+                <li><b>Instance started:</b> {{ .StartTime }}</li>
+            </ul>
+        </div>
 
 </body>
+
 </html>
