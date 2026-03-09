@@ -3,9 +3,12 @@ package api
 import (
 	"embed"
 	"encoding/json"
+	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
+	"time"
 
 	"github.com/apparentlyarhm/app-proxy-go/internal/report"
 	"github.com/apparentlyarhm/app-proxy-go/internal/spotify"
@@ -15,12 +18,23 @@ import (
 //go:embed web/*
 var content embed.FS
 
+var homepageTemplate = template.Must(
+	template.ParseFS(content, "web/index.html"),
+)
+
 var pingResponse = struct {
 	Message     string `json:"message"`
 	AgentString string `json:"agentString"`
 }{
 	Message:     "works!",
 	AgentString: "go-1.25",
+}
+
+type homepageData struct {
+	RL        string
+	Service   string
+	Revision  string
+	StartTime string
 }
 
 func (s *Server) pingHandler() http.HandlerFunc {
@@ -37,18 +51,24 @@ func (s *Server) pingHandler() http.HandlerFunc {
 
 func (s *Server) homepageHandler() http.HandlerFunc {
 
+	startTime := time.Now()
+
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		data, err := content.ReadFile("web/index.html")
-		if err != nil {
-			log.Printf("Error loading homepage: %v", err)
-			http.Error(w, "Failed to load homepage", http.StatusInternalServerError)
-			return
+		data := homepageData{
+			RL:        os.Getenv("GLOBAL_RATE_LIMIT"),
+			Service:   os.Getenv("K_SERVICE"),
+			Revision:  os.Getenv("K_REVISION"),
+			StartTime: startTime.Format(time.RFC3339),
 		}
 
-		w.Header().Set("Content-Type", "text/html")
-		w.WriteHeader(http.StatusOK)
-		w.Write(data)
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+		err := homepageTemplate.Execute(w, data)
+		if err != nil {
+			http.Error(w, "Failed to render homepage. However, the server is running.", http.StatusOK)
+			return
+		}
 	}
 }
 
