@@ -41,6 +41,8 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) routes() {
+	s.router.HandleFunc("/", s.homepageHandler()).Methods(http.MethodGet)
+
 	s.router.HandleFunc("/steam/summary", s.handleGetSteamData()).Methods(http.MethodGet)
 	s.router.HandleFunc("/github/activity", s.handleGetGithubDAta()).Methods(http.MethodGet)
 	s.router.HandleFunc("/spotify/top", s.handleGetSpotifyTopItems()).Methods(http.MethodGet)

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spoti-proxy</title>
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Spoti-proxy">
+    <meta property="og:description" content="My personal website shows data from various services. This backend fetches that data for me in a single place.">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Spoti-proxy">
+    
+    <!-- Basic meta -->
+    <meta name="description" content="My personal website shows data from various services. This backend fetches that data for me in a single place.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            margin: 40px;
+            background: #fafafa;
+            color: #222;
+        }
+
+        h1 {
+            margin-bottom: 0.2em;
+        }
+
+        .box {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 15px;
+            max-width: 700px;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        ul {
+            line-height: 1.7;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>Spoti-proxy</h1>
+<p>If you see this, the server is running.</p>
+
+<p>
+This API prvoides data for nsfw.arhm.dev
+It is not intended for direct browser usage.
+</p>
+
+<div class="box">
+<h2>Available Endpoints</h2>
+
+<ul>
+<li><code>GET /steam/summary</code> — Steam profile summary</li>
+<li><code>GET /github/activity</code> — Recent GitHub activity</li>
+<li><code>GET /spotify/top</code> — Top Spotify items</li>
+<li><code>GET /spotify/now</code> — Currently playing track</li>
+<li><code>GET /misc/ping</code> — Health check</li>
+<li><code>GET /misc/report</code> — Retrieve system report</li>
+<p>Below are ran locally.</p>
+<li><code>POST /misc/report</code> — Publish system report (API key required)</li>
+<li><code>DELETE /misc/report</code> — Delete system report (API key required)</li>
+</ul>
+
+</div>
+
+<div class="box">
+<h2>Source</h2>
+<p>
+Project repo:  
+<a href="https://github.com/apaprentlyarhm/spoti-proxy">
+https://github.com/apaprentlyarhm/spoti-proxy
+</a>
+</p>
+</div>
+
+</body>
+</html>

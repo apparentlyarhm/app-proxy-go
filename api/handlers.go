@@ -1,6 +1,7 @@
 package api
 
 import (
+	"embed"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -10,6 +11,9 @@ import (
 	"github.com/apparentlyarhm/app-proxy-go/internal/spotify"
 	"github.com/redis/go-redis/v9"
 )
+
+//go:embed web/*
+var content embed.FS
 
 var pingResponse = struct {
 	Message     string `json:"message"`
@@ -29,6 +33,23 @@ func (s *Server) pingHandler() http.HandlerFunc {
 		json.NewEncoder(w).Encode(pingResponse)
 	}
 
+}
+
+func (s *Server) homepageHandler() http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		data, err := content.ReadFile("web/index.html")
+		if err != nil {
+			log.Printf("Error loading homepage: %v", err)
+			http.Error(w, "Failed to load homepage", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "text/html")
+		w.WriteHeader(http.StatusOK)
+		w.Write(data)
+	}
 }
 
 func (s *Server) handleGetSteamData() http.HandlerFunc {
