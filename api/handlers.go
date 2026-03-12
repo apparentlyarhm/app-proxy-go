@@ -31,7 +31,7 @@ var pingResponse = struct {
 }
 
 type homepageData struct {
-	RL        string
+	Redis     bool
 	Service   string
 	Revision  string
 	StartTime string
@@ -51,21 +51,25 @@ func (s *Server) pingHandler() http.HandlerFunc {
 
 func (s *Server) homepageHandler() http.HandlerFunc {
 
+	// this could be either a cold start or not, so at the frontend we will either see
+	// a small time delta between this and current client time or a large, indicating it
+	// has been receiving traffic.
 	startTime := time.Now()
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		data := homepageData{
-			RL:        os.Getenv("GLOBAL_RATE_LIMIT"),
+			Redis:     os.Getenv("REDIS_ADDR") != "",
 			Service:   os.Getenv("K_SERVICE"),
 			Revision:  os.Getenv("K_REVISION"),
-			StartTime: startTime.Format(time.RFC3339),
+			StartTime: startTime.Format("2006-01-02 15:04:05"),
 		}
 
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 		err := homepageTemplate.Execute(w, data)
 		if err != nil {
+			log.Default().Printf("%s", err)
 			http.Error(w, "Failed to render homepage. However, the server is running.", http.StatusOK)
 			return
 		}

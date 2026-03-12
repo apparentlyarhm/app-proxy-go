@@ -2,6 +2,12 @@
 <html lang="en">
 
 <head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap"
+        rel="stylesheet">
+
     <meta charset="UTF-8">
     <title>Spoti-proxy</title>
 
@@ -25,6 +31,10 @@
 
         h1 {
             margin-bottom: 0.2em;
+
+            font-size: xx-large;
+            font-family: "IBM Plex Sans", sans-serif;
+            font-weight: 700;
         }
 
         .container {
@@ -72,6 +82,8 @@
             background: #f4f4f4;
             padding: 2px 6px;
             border-radius: 4px;
+            font-family: "JetBrains Mono", monospace;
+            font-size: small;
         }
 
         ul {
@@ -86,6 +98,9 @@
             border-radius: 15px;
             cursor: pointer;
             transition: background-color 0.1s ease, border-color 0.1s ease;
+
+            font-family: "JetBrains Mono", monospace;
+            font-size: small;
         }
 
         button:hover {
@@ -103,6 +118,45 @@
             display: flex;
             align-items: center;
             gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+
+            .container {
+                flex-direction: column;
+                height: auto;
+            }
+
+            .left {
+                width: auto;
+                margin: 20px;
+            }
+
+            .right {
+                width: auto;
+                height: 200px;
+                margin: 20px;
+                font-size: 11px;
+            }
+
+            h1 {
+                font-size: 26px;
+            }
+
+            body {
+                font-size: 15px;
+            }
+
+            button {
+                padding: 14px 22px;
+                font-size: 11px;
+            }
+
+            .btn-row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
         }
     </style>
 </head>
@@ -122,9 +176,10 @@
                 <h2>Available Endpoints</h2>
 
                 <ul>
-                    <li><code>GET /steam/summary</code> — Steam profile summary</li>
+                    <li><code>GET /steam/summary</code> — Steam profile summary. Query parameters: type</li>
                     <li><code>GET /github/activity</code> — Recent GitHub activity</li>
-                    <li><code>GET /spotify/top</code> — Top Spotify items</li>
+                    <li><code>GET /spotify/top</code> — Top Spotify items. Query parameters: type, time_range, limit,
+                        offset, full</li>
                     <li><code>GET /spotify/now</code> — Currently playing track</li>
                     <li><code>GET /misc/ping</code> — Health check</li>
                     <li><code>GET /misc/report</code> — Retrieve system report</li>
@@ -153,7 +208,7 @@
         <div class="right">
             <p>I might or might not add a API exectioner here later</p>
             <ul>
-                <li><b>Global Rate limit:</b> {{ .RL }}</li>
+                <li><b>Redis:</b> {{ .Redis }}</li>
                 <li><b>Service:</b> {{ .Service }}</li>
                 <li><b>Revision:</b> {{ .Revision }}</li>
                 <li><b>Instance started:</b> {{ .StartTime }}</li>
