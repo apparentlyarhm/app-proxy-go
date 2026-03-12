@@ -15,6 +15,11 @@ type Config struct {
 	Spotify          SpotifyConfig
 	Github           GitHubConfig
 	Redis            RedisConfig
+	Crypto           CryptoConfig
+}
+
+type CryptoConfig struct {
+	HMACSecret string `envconfig:"HMAC_SECRET" required:"true"`
 }
 
 type DatabaseConfig struct {
@@ -72,6 +77,8 @@ func Load() (Config, error) {
 	fmt.Printf("[ENV] len GLOBAL_API_KEY: %v\n", len(cfg.GlobalApiKey))
 	fmt.Printf("[ENV] len DB_PASSWORD: %v\n", len(cfg.Database.Pass))
 	fmt.Printf("[ENV] Setting Global Rate Limit: %v\n", cfg.GlobalRateLimit)
+	fmt.Printf("[ENV] Setting HMAC Secret: %v\n", len(cfg.Crypto.HMACSecret))
+
 	fmt.Printf("[ENV] DB Host: %v\n", cfg.Database.Host)
 
 	return cfg, nil

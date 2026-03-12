@@ -74,7 +74,7 @@ func main() {
 	`)
 
 	// we attempt to init redis first, as absence of it should not start the app, even though currently its not really mission critical.
-	rc, e := report.NewClient(cfg.Redis)
+	rc, e := report.NewClient(cfg.Redis, cfg.Crypto)
 	if e != nil {
 		log.Fatalf("[IS IT AVAILABLE?]failed to connect to redis: %v", e)
 	}
