@@ -56,4 +56,7 @@ func (s *Server) routes() {
 
 	deleteReportHandler := http.HandlerFunc(s.handleSystemReportDeletion())
 	s.router.Handle("/misc/report", middleware.WithAPIKey(s.conf.GlobalApiKey)(deleteReportHandler)).Methods(http.MethodDelete)
+
+	recordViewHandler := http.HandlerFunc(s.handleViewRecording())
+	s.router.Handle("/blog/record-view", middleware.WithAPIKey(s.conf.GlobalApiKey)(recordViewHandler)).Methods(http.MethodPost)
 }

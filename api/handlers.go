@@ -3,6 +3,7 @@ package api
 import (
 	"embed"
 	"encoding/json"
+	"errors"
 	"html/template"
 	"log"
 	"net/http"
@@ -125,6 +126,48 @@ func (s *Server) handleSystemReportPublishing() http.HandlerFunc {
 		if e != nil {
 			http.Error(w, "Something went wrong", http.StatusInternalServerError)
 		}
+	}
+}
+
+func (s *Server) handleViewRecording() http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req report.ViewRequest
+
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "invalid request body", http.StatusBadRequest)
+			return
+		}
+
+		err := s.reportClient.RecordBlogView(r.Context(), req)
+		if err != nil {
+			switch {
+			case errors.Is(err, report.ErrInvalidSignature):
+				http.Error(w, "unauthorized", http.StatusUnauthorized)
+
+			case errors.Is(err, report.ErrMalformedPayload):
+				http.Error(w, "bad request", http.StatusBadRequest)
+
+			case errors.Is(err, report.ErrTooFast):
+				http.Error(w, "view too fast", http.StatusTooEarly) // 425
+
+			case errors.Is(err, report.ErrExpired):
+				http.Error(w, "ticket expired", http.StatusGone) // 410
+
+			case errors.Is(err, report.ErrDuplicate):
+				http.Error(w, "already recorded", http.StatusConflict) // 409
+
+			default:
+				// Catch-all for internal DB/Redis errors
+				http.Error(w, "internal server error", http.StatusInternalServerError)
+			}
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":"recorded"}`))
 	}
 }
 
