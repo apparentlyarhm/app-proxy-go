@@ -146,25 +146,32 @@ func (c *Client) RecordBlogView(ctx context.Context, req ViewRequest) error {
 
 	now := time.Now().Unix()
 	if now-payload.IssuedAt < 3 {
-		log.Printf("[REPORT SERV] :: Too fast for slug: %s", payload.Slug)
 		return ErrTooFast
 	}
 	if now-payload.IssuedAt > 3600 {
 		return ErrExpired
 	}
 
-	redisKey := "view_nonce:" + payload.Nonce
-	isNew, err := c.actualRedisClient.SetNX(ctx, redisKey, "15", time.Minute*15).Result()
-	if err != nil {
-		return fmt.Errorf("redis error: %w", err)
-	}
+	// TODO: keep a watch on this approach
+	// we will accumulate counts in redis and flush externally.
+	cooldownKey := fmt.Sprintf("view_cooldown:%s:%s", payload.Slug, payload.ViewerID)
 
+	isNew, err := c.actualRedisClient.SetNX(ctx, cooldownKey, "1", 24*time.Hour).Result()
+	if err != nil {
+		return fmt.Errorf("redis setnx error: %w", err)
+	}
 	if !isNew {
-		log.Printf("[REPORT SERV] :: Duplicate view prevented for slug: %s", payload.Slug)
+		// The script is looping, or the user refreshed. Ignore silently or throw error.
 		return ErrDuplicate
 	}
 
-	// TODO: add mongodb call here
-	log.Printf("[REPORT SERV] :: Successfully recorded view for %s", payload.Slug)
+	// This creates/updates a hash where Field = Slug, Value = Count
+	// pbv == pending_blog_views
+	// this count will be processed.
+	err = c.actualRedisClient.HIncrBy(ctx, "pbv", payload.Slug, 1).Err()
+	if err != nil {
+		return fmt.Errorf("redis hincrby error: %w", err)
+	}
+
 	return nil
 }
