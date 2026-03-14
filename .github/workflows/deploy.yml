@@ -76,6 +76,7 @@ jobs:
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASS: ${{ secrets.DB_PASS }}
           TAILSCALE_AUTH_KEY: ${{ secrets.TAILSCALE_AUTH_KEY }}
+          HMAC_SECRET: ${{ secrets.HMAC_SECRET }}
 
 
       - name: Set up Google Cloud Auth
@@ -117,4 +118,5 @@ jobs:
             DB_USER=${{ secrets.DB_USER }}
             DB_PASS=${{ secrets.DB_PASS }}
             TAILSCALE_AUTH_KEY=${{ secrets.TAILSCALE_AUTH_KEY }}
+            HMAC_SECRET=${{ secrets.HMAC_SECRET }}
 
