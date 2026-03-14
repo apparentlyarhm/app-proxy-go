@@ -156,7 +156,7 @@ func (c *Client) RecordBlogView(ctx context.Context, req ViewRequest) error {
 	// we will accumulate counts in redis and flush externally.
 	cooldownKey := fmt.Sprintf("view_cooldown:%s:%s", payload.Slug, payload.ViewerID)
 
-	isNew, err := c.actualRedisClient.SetNX(ctx, cooldownKey, "1", 24*time.Hour).Result()
+	isNew, err := c.actualRedisClient.SetNX(ctx, cooldownKey, "1", 10*time.Minute).Result()
 	if err != nil {
 		return fmt.Errorf("redis setnx error: %w", err)
 	}
