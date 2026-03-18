@@ -76,8 +76,8 @@ func Load() (Config, error) {
 	fmt.Printf("[ENV] len REDIS_PASSWORD: %v\n", len(cfg.Redis.Password))
 	fmt.Printf("[ENV] len GLOBAL_API_KEY: %v\n", len(cfg.GlobalApiKey))
 	fmt.Printf("[ENV] len DB_PASSWORD: %v\n", len(cfg.Database.Pass))
+	fmt.Printf("[ENV] len HMAC Secret: %v\n", len(cfg.Crypto.HMACSecret))
 	fmt.Printf("[ENV] Setting Global Rate Limit: %v\n", cfg.GlobalRateLimit)
-	fmt.Printf("[ENV] Setting HMAC Secret: %v\n", len(cfg.Crypto.HMACSecret))
 
 	fmt.Printf("[ENV] DB Host: %v\n", cfg.Database.Host)
 

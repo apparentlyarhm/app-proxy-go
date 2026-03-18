@@ -9,14 +9,14 @@
         rel="stylesheet">
 
     <meta charset="UTF-8">
-    <title>Spoti-proxy</title>
+    <title>munnin :></title>
 
     <!-- Open Graph -->
-    <meta property="og:title" content="Spoti-proxy">
+    <meta property="og:title" content="munnin">
     <meta property="og:description"
         content="My personal website shows data from various services. This backend fetches that data for me in a single place.">
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="Spoti-proxy">
+    <meta property="og:site_name" content="munnin">
 
     <!-- Basic meta -->
     <meta name="description"
@@ -84,6 +84,11 @@
             border-radius: 4px;
             font-family: "JetBrains Mono", monospace;
             font-size: small;
+            cursor: pointer;
+        }
+
+        code:hover {
+            background: #c5c5c593;
         }
 
         ul {
@@ -164,8 +169,8 @@
 <body>
     <div class="container">
         <div class="left">
-            <h1>Spoti-proxy</h1>
-            <p>If you see this, the server is running.</p>
+            <h1>Welcome to Munnin's homepage</h1>
+            <p>If you see this, the server is running; There's nothing much you can do from here though.</p>
 
             <p>
                 My personal website shows data from various services.
@@ -183,8 +188,12 @@
                     <li><code>GET /spotify/now</code> — Currently playing track</li>
                     <li><code>GET /misc/ping</code> — Health check</li>
                     <li><code>GET /misc/report</code> — Retrieve system report</li>
-                    <p>Below are ran locally.</p>
-                    <li><code>POST /misc/report</code> — Publish system report (API key required)</li>
+                    
+                    <p>Comes from blog.arhm.dev</p>
+                    <li><code>POST /blog/record-view</code> — Verify signed payload then count in Redis</li>
+
+                    <p>I invoke these locally</p>
+                    <li><code>POST /misc/report</code> — Tracks my system specs and when I'm online (API Key required)</li>
                     <li><code>DELETE /misc/report</code> — Delete system report (API key required)</li>
                 </ul>
 
@@ -197,6 +206,9 @@
                     </a>
                     <a href="https://space.arhm.dev" target="_blank">
                         <button>Site</button>
+                    </a>
+                    <a href="https://blog.arhm.dev" target="_blank">
+                        <button>Blog</button>
                     </a>
                     <a href="https://console.cloud.google.com/run" target="_blank">
                         <button>Cloud Run</button>
