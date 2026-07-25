@@ -6,6 +6,7 @@ import (
 	b6 "encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -55,7 +56,7 @@ func (c *Client) getAccessToken() (string, error) {
 
 	reqBody := strings.NewReader(params.Encode())
 
-	req, err := http.NewRequest("POST", "https://accounts.spotify.com/api/token", reqBody)
+	req, err := http.NewRequest("POST", "https://accounts.spotify.com/api/token/", reqBody)
 	if err != nil {
 		return "", fmt.Errorf("failed to create token refresh request: %w", err)
 	}
@@ -70,6 +71,13 @@ func (c *Client) getAccessToken() (string, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Printf("[Spotify] Token refresh failed. Status: %s (failed to read body: %v)", resp.Status, err)
+			return "", fmt.Errorf("spotify token refresh failed with status: %s", resp.Status)
+		}
+
+		log.Printf("[Spotify] Token refresh failed. Status: %s, Body: %s", resp.Status, string(body))
 		return "", fmt.Errorf("spotify token refresh failed with status: %s", resp.Status)
 	}
 

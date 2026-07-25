@@ -206,6 +206,7 @@ func (s *Server) handleSystemReportDeletion() http.HandlerFunc {
 
 			} else {
 				http.Error(w, "Something went wrong", http.StatusInternalServerError)
+				log.Printf("Error deleting system report: %v", e)
 				return
 
 			}
@@ -253,6 +254,7 @@ func (s *Server) handleGetSpotifyTopItems() http.HandlerFunc {
 		data, err := s.spotifyClient.GetTopItems(params)
 		if err != nil {
 			http.Error(w, "Failed to retrieve top items from Spotify.", http.StatusInternalServerError)
+			log.Printf("Error retrieving top items: %v", err)
 			return
 		}
 
@@ -270,6 +272,7 @@ func (s *Server) handleGetSpotifyNowPlaying() http.HandlerFunc {
 		data, err := s.spotifyClient.GetNowPlaying(full)
 		if err != nil {
 			http.Error(w, "Failed to retrieve now-playing data from Spotify.", http.StatusInternalServerError)
+			log.Printf("Error retrieving now-playing data: %v", err)
 			return
 		}
 
