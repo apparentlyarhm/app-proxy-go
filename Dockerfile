@@ -12,7 +12,7 @@ COPY . .
 
 # Build the Go application..
 # CGO_ENABLED=0: creates a statically linked binary, crucial for running in minimal images.
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o main ./cmd/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o pxy ./cmd/pxy
 
 
 # ---- Stage 2: The Final Image ----
@@ -26,7 +26,7 @@ USER appuser
 WORKDIR /home/appuser
 
 # Copy ONLY the compiled binary from the builder stage.
-COPY --from=builder /app/main .
+COPY --from=builder /app/pxy .
 
 EXPOSE 8080
-CMD ["./main"]
+CMD ["./pxy"]
